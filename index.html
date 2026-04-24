@@ -12,39 +12,45 @@
         /* ==========================================================================
            ПОЛЬЗОВАТЕЛЬСКИЕ СТИЛИ И АНИМАЦИИ
            ========================================================================== */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700;900&display=swap');
 
         :root {
-            --cell-size: 36px; /* Базовый размер клетки */
+            --cell-size: 36px;
             --bg-color: #0f172a;
             --panel-bg: #1e293b;
             --cell-closed: #334155;
             --cell-closed-hover: #475569;
             --cell-open: #cbd5e1;
             --text-color: #f8fafc;
+            --grid-gap: 2px;
+        }
+
+        /* Адаптация размера клеток для мобильных */
+        @media (max-width: 600px) {
+            :root { --cell-size: 30px; }
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Roboto', sans-serif;
-            overflow: hidden; /* Запрещаем скролл всей страницы, скроллится только поле */
-            touch-action: none; /* Отключаем стандартные жесты браузера для корректной работы игры */
+            overflow: hidden;
+            touch-action: none; /* Блокировка зума и свайпов */
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* Цифровой шрифт для таймера и счетчиков */
+        /* Цифровой шрифт */
         .digital-font {
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 2px;
             text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
         }
 
-        /* Контейнер игрового поля со скроллом для больших карт */
+        /* Контейнер со скроллом */
         #game-container-wrapper {
             width: 100%;
-            height: calc(100vh - 160px); /* Высота минус шапка и панель */
+            height: calc(100vh - 150px);
             overflow: auto;
             display: flex;
             justify-content: center;
@@ -53,19 +59,24 @@
             position: relative;
         }
 
-        /* Само игровое поле (Grid) */
+        /* Сетка игры */
         #game-board {
             display: grid;
-            gap: 2px;
+            gap: var(--grid-gap);
             background-color: #0f172a;
             padding: 4px;
             border-radius: 8px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             border: 2px solid #334155;
-            margin: auto; /* Для центрирования в flex-контейнере */
+            margin: auto;
+            transition: filter 0.3s;
         }
 
-        /* Стили отдельной клетки */
+        #game-board.game-over {
+            filter: grayscale(0.5);
+        }
+
+        /* Клетка */
         .cell {
             width: var(--cell-size);
             height: var(--cell-size);
@@ -74,178 +85,178 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-weight: bold;
-            font-size: 20px;
+            font-weight: 900;
+            font-size: calc(var(--cell-size) * 0.55);
             cursor: pointer;
-            transition: background-color 0.1s, transform 0.1s;
-            box-shadow: inset 2px 2px 0px rgba(255,255,255,0.2), inset -2px -2px 0px rgba(0,0,0,0.3);
+            box-shadow: inset 2px 2px 0px rgba(255,255,255,0.15), inset -2px -2px 0px rgba(0,0,0,0.3);
+            position: relative;
         }
 
-        .cell:active:not(.revealed) {
-            transform: scale(0.95);
+        .cell:active:not(.revealed):not(.flagged) {
+            background-color: var(--cell-closed-hover);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4);
         }
 
-        /* Состояние открытой клетки */
+        /* Открытая клетка */
         .cell.revealed {
             background-color: var(--cell-open);
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3);
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2);
             cursor: default;
         }
 
-        /* Стилизация цифр (как в классике) */
-        .cell[data-value="1"] { color: #1d4ed8; } /* Синий */
-        .cell[data-value="2"] { color: #15803d; } /* Зеленый */
-        .cell[data-value="3"] { color: #b91c1c; } /* Красный */
-        .cell[data-value="4"] { color: #6d28d9; } /* Фиолетовый */
-        .cell[data-value="5"] { color: #7c2d12; } /* Темно-красный */
-        .cell[data-value="6"] { color: #0f766e; } /* Бирюзовый */
-        .cell[data-value="7"] { color: #000000; } /* Черный */
-        .cell[data-value="8"] { color: #52525b; } /* Серый */
+        /* Цвета цифр */
+        .cell[data-value="1"] { color: #1d4ed8; }
+        .cell[data-value="2"] { color: #15803d; }
+        .cell[data-value="3"] { color: #b91c1c; }
+        .cell[data-value="4"] { color: #6d28d9; }
+        .cell[data-value="5"] { color: #7c2d12; }
+        .cell[data-value="6"] { color: #0f766e; }
+        .cell[data-value="7"] { color: #000000; }
+        .cell[data-value="8"] { color: #52525b; }
 
-        /* Анимация взрыва клетки */
+        /* Анимации */
         @keyframes explode {
             0% { transform: scale(1); background-color: #ef4444; }
-            50% { transform: scale(1.2); background-color: #fca5a5; }
-            100% { transform: scale(1); background-color: #ef4444; }
+            50% { transform: scale(1.3); background-color: #fca5a5; z-index: 10;}
+            100% { transform: scale(1); background-color: #ef4444; z-index: 1;}
         }
         .cell.exploded {
-            animation: explode 0.4s ease-out forwards;
-            color: black;
-            font-size: 24px;
-            z-index: 10;
+            animation: explode 0.5s ease-out forwards;
+            color: #450a0a;
+            box-shadow: 0 0 10px #ef4444;
         }
 
-        /* Анимация появления флага */
         @keyframes pop {
             0% { transform: scale(0); }
-            80% { transform: scale(1.2); }
+            70% { transform: scale(1.3); }
             100% { transform: scale(1); }
         }
-        .cell .flag-icon {
+        .cell .flag-icon, .cell .mine-icon {
             display: inline-block;
             animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            color: #ef4444;
-            text-shadow: 1px 1px 0 #000;
+        }
+        .cell .flag-icon { color: #ef4444; text-shadow: 1px 1px 0 #000; }
+        .cell .mine-icon { color: #111827; }
+        .cell.wrong-flag .flag-icon { color: #94a3b8; }
+        
+        /* Крестик для неверного флага */
+        .cell.wrong-flag::after {
+            content: '❌';
+            position: absolute;
+            font-size: calc(var(--cell-size) * 0.6);
+            z-index: 2;
+            animation: pop 0.3s forwards;
         }
 
-        /* Ховер эффект для закрытых клеток на ПК */
         @media (hover: hover) {
-            .cell:hover:not(.revealed) {
-                background-color: var(--cell-closed-hover);
-            }
+            .cell:hover:not(.revealed) { background-color: var(--cell-closed-hover); }
+            .cell.revealed[data-value]:hover { background-color: #e2e8f0; } /* Подсветка для аккорда */
+        }
+
+        /* Эффект нажатия на цифру для аккорда */
+        .cell.revealed.chord-active {
+            filter: brightness(0.9);
         }
 
         /* Модальные окна */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.3s;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 50; opacity: 0; transition: opacity 0.3s;
         }
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.active { display: flex; opacity: 1; }
         
         .modal-content {
             background: var(--panel-bg);
             border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 24px;
-            width: 90%;
-            max-width: 400px;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 24px; width: 90%; max-width: 420px;
+            transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
 
-        /* Канвас для эффектов частиц (поверх всего) */
         #effects-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Пропускает клики сквозь себя */
-            z-index: 40;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 40;
         }
 
-        /* Класс для активной кнопки режима на мобильных */
         .mode-btn-active {
-            box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-            border-color: #3b82f6;
+            background-color: #3b82f6 !important;
+            color: white !important;
+            box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border-color: #2563eb !important;
         }
 
-        /* Стилизация скроллбара */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        /* Скроллбары */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; border: 2px solid var(--bg-color); }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Класс для активной сложности */
+        .diff-btn-active {
+            background-color: #2563eb !important;
+            border-color: #60a5fa !important;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <!-- CANVAS ДЛЯ ЧАСТИЦ (ВЗРЫВЫ, КОНФЕТТИ) -->
+    <!-- CANVAS ДЛЯ ВИЗУАЛЬНЫХ ЭФФЕКТОВ -->
     <canvas id="effects-canvas"></canvas>
 
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ ИНСТРУМЕНТОВ -->
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <header class="bg-slate-800 p-3 shadow-lg flex justify-between items-center z-10 border-b border-slate-700">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-bomb text-red-500 text-2xl"></i>
-            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-yellow-500 hidden sm:block">САПЁР PRO</h1>
+        <div class="flex items-center gap-3">
+            <div class="relative w-10 h-10 bg-slate-900 rounded-lg flex justify-center items-center shadow-inner">
+                <i class="fa-solid fa-bomb text-red-500 text-xl"></i>
+            </div>
+            <h1 class="text-xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-red-400 via-orange-400 to-yellow-500 hidden sm:block uppercase">Сапёр Pro</h1>
         </div>
         
-        <!-- Кнопки управления (Настройки, Статистика) -->
-        <div class="flex gap-3">
-            <button id="btn-stats" class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-blue-400" title="Статистика">
+        <div class="flex gap-2">
+            <button id="btn-stats" class="w-10 h-10 flex justify-center items-center bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-blue-400 border border-slate-600 shadow-sm" title="Статистика">
                 <i class="fa-solid fa-chart-simple"></i>
             </button>
-            <button id="btn-settings" class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-slate-300" title="Настройки">
+            <button id="btn-settings" class="w-10 h-10 flex justify-center items-center bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-slate-300 border border-slate-600 shadow-sm" title="Настройки">
                 <i class="fa-solid fa-gear"></i>
             </button>
         </div>
     </header>
 
-    <!-- ИГРОВАЯ ПАНЕЛЬ (СЧЕТЧИКИ И СМАЙЛИК) -->
-    <div class="bg-slate-900 p-4 flex justify-between items-center shadow-inner border-b border-slate-800">
-        <!-- Счетчик оставшихся мин -->
-        <div class="bg-black border-2 border-slate-700 rounded p-2 flex items-center min-w-[80px] justify-center">
-            <span id="mines-count" class="digital-font text-red-500 text-3xl font-bold leading-none">000</span>
+    <!-- ИГРОВАЯ ИНФО-ПАНЕЛЬ -->
+    <div class="bg-slate-900 px-4 py-3 flex justify-between items-center shadow-inner border-b border-slate-800">
+        <!-- Счетчик мин -->
+        <div class="bg-black border-2 border-slate-700 rounded-lg p-1.5 flex items-center min-w-[85px] justify-center shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
+            <span id="mines-count" class="digital-font text-red-500 text-3xl font-bold leading-none tracking-widest">000</span>
         </div>
 
-        <!-- Кнопка рестарта (Смайлик) -->
-        <button id="btn-restart" class="w-12 h-12 bg-slate-300 hover:bg-white rounded-full flex justify-center items-center text-2xl shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all active:scale-95 border-2 border-slate-400">
-            😎
+        <!-- Кнопка рестарта (Лицо) -->
+        <button id="btn-restart" class="w-14 h-14 bg-slate-200 hover:bg-white rounded-full flex justify-center items-center text-3xl shadow-[0_0_15px_rgba(255,255,255,0.1),inset_0_-4px_8px_rgba(0,0,0,0.2)] transition-all active:scale-90 active:shadow-[inset_0_4px_8px_rgba(0,0,0,0.3)] border-4 border-slate-400">
+            🙂
         </button>
 
         <!-- Таймер -->
-        <div class="bg-black border-2 border-slate-700 rounded p-2 flex items-center min-w-[80px] justify-center">
-            <span id="timer-count" class="digital-font text-red-500 text-3xl font-bold leading-none">000</span>
+        <div class="bg-black border-2 border-slate-700 rounded-lg p-1.5 flex items-center min-w-[85px] justify-center shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
+            <span id="timer-count" class="digital-font text-red-500 text-3xl font-bold leading-none tracking-widest">000</span>
         </div>
     </div>
 
-    <!-- ПАНЕЛЬ УПРАВЛЕНИЯ РЕЖИМАМИ ДЛЯ МОБИЛЬНЫХ -->
-    <div class="bg-slate-800 p-2 flex justify-center gap-4 sm:hidden z-10 border-b border-slate-700 shadow-md">
-        <button id="mode-dig" class="flex-1 py-2 rounded-lg bg-slate-700 text-white font-bold border-2 border-transparent transition-all flex justify-center items-center gap-2 mode-btn-active">
+    <!-- ПАНЕЛЬ УПРАВЛЕНИЯ РЕЖИМАМИ (МОБИЛЬНЫЕ) -->
+    <div class="bg-slate-800 p-2 flex justify-center gap-3 sm:hidden z-10 border-b border-slate-700 shadow-md">
+        <button id="mode-dig" class="flex-1 py-2.5 rounded-lg bg-slate-700 text-slate-300 font-bold border-2 border-slate-600 transition-all flex justify-center items-center gap-2 mode-btn-active">
             <i class="fa-solid fa-person-digging"></i> Копать
         </button>
-        <button id="mode-flag" class="flex-1 py-2 rounded-lg bg-slate-700 text-white font-bold border-2 border-transparent transition-all flex justify-center items-center gap-2">
+        <button id="mode-flag" class="flex-1 py-2.5 rounded-lg bg-slate-700 text-slate-300 font-bold border-2 border-slate-600 transition-all flex justify-center items-center gap-2">
             <i class="fa-solid fa-flag text-red-400"></i> Флаг
         </button>
     </div>
 
-    <!-- КОНТЕЙНЕР ДЛЯ ИГРОВОГО ПОЛЯ -->
+    <!-- ИГРОВОЕ ПОЛЕ -->
     <main id="game-container-wrapper" class="flex-grow">
-        <!-- Поле генерируется динамически через JS -->
         <div id="game-board" oncontextmenu="return false;"></div>
     </main>
 
@@ -253,43 +264,59 @@
     <!-- МОДАЛЬНЫЕ ОКНА -->
     <!-- ======================================================================= -->
 
-    <!-- МОДАЛЬНОЕ ОКНО: НАСТРОЙКИ -->
+    <!-- НАСТРОЙКИ -->
     <div id="modal-settings" class="modal-overlay">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white">Настройки</h2>
-                <button class="close-modal text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-white uppercase tracking-wide">Настройки</h2>
+                <button class="close-modal w-8 h-8 flex justify-center items-center rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-slate-300 text-sm font-bold mb-2">Сложность</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="beginner">Новичок<br><span class="text-xs text-slate-300">9x9, 10 мин</span></button>
-                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="intermediate">Любитель<br><span class="text-xs text-slate-300">16x16, 40 мин</span></button>
-                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="expert">Профи<br><span class="text-xs text-slate-300">30x16, 99 мин</span></button>
-                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="custom">Своя игра</button>
+                    <label class="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Сложность</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start" data-level="beginner">
+                            <span class="font-bold text-lg">Новичок</span>
+                            <span class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-border-all mr-1"></i>9x9 <i class="fa-solid fa-bomb ml-2 mr-1"></i>10</span>
+                        </button>
+                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start" data-level="intermediate">
+                            <span class="font-bold text-lg text-green-400">Любитель</span>
+                            <span class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-border-all mr-1"></i>16x16 <i class="fa-solid fa-bomb ml-2 mr-1"></i>40</span>
+                        </button>
+                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start" data-level="expert">
+                            <span class="font-bold text-lg text-red-400">Профи</span>
+                            <span class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-border-all mr-1"></i>30x16 <i class="fa-solid fa-bomb ml-2 mr-1"></i>99</span>
+                        </button>
+                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start" data-level="custom">
+                            <span class="font-bold text-lg text-purple-400">Своя игра</span>
+                            <span class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-sliders mr-1"></i>Настроить</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Блок пользовательских настроек (скрыт по умолчанию) -->
-                <div id="custom-settings" class="hidden space-y-2 bg-slate-800 p-3 rounded-lg border border-slate-600">
-                    <div class="flex items-center justify-between">
-                        <label class="text-slate-300 text-sm">Ширина:</label>
-                        <input type="number" id="custom-width" min="5" max="50" value="10" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <label class="text-slate-300 text-sm">Высота:</label>
-                        <input type="number" id="custom-height" min="5" max="50" value="10" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <label class="text-slate-300 text-sm">Мины:</label>
-                        <input type="number" id="custom-mines" min="1" value="15" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
+                <div id="custom-settings" class="hidden bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-slate-400 text-xs mb-1 text-center">Ширина</label>
+                            <input type="number" id="custom-width" min="5" max="100" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-slate-400 text-xs mb-1 text-center">Высота</label>
+                            <input type="number" id="custom-height" min="5" max="100" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-slate-400 text-xs mb-1 text-center text-red-400">Мины</label>
+                            <input type="number" id="custom-mines" min="1" value="15" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-red-500 focus:outline-none transition-colors">
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between mt-4">
-                    <label class="text-slate-300 font-bold">Звук</label>
+                <div class="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-volume-high text-slate-400"></i>
+                        <span class="text-white font-bold">Звук и эффекты</span>
+                    </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="toggle-sound" class="sr-only peer" checked>
                         <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -297,151 +324,58 @@
                 </div>
             </div>
 
-            <button id="btn-apply-settings" class="mt-6 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">
-                Применить и Начать
+            <button id="btn-apply-settings" class="mt-6 w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black py-4 rounded-xl shadow-lg transition-all active:scale-95 uppercase tracking-wider text-sm border-b-4 border-blue-700 active:border-b-0 active:translate-y-1">
+                Начать новую игру
             </button>
         </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО: КОНЕЦ ИГРЫ (ПОБЕДА/ПОРАЖЕНИЕ) -->
+    <!-- КОНЕЦ ИГРЫ -->
     <div id="modal-gameover" class="modal-overlay">
-        <div class="modal-content text-center">
-            <div id="gameover-icon" class="text-6xl mb-4">🏆</div>
-            <h2 id="gameover-title" class="text-3xl font-bold text-white mb-2">Победа!</h2>
-            <p id="gameover-message" class="text-slate-300 mb-6">Вы разминировали поле.</p>
+        <div class="modal-content text-center relative overflow-hidden">
+            <div id="gameover-bg-glow" class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-blue-500 opacity-20 blur-3xl rounded-full"></div>
             
-            <div class="bg-slate-800 rounded-lg p-4 mb-6 flex justify-around">
-                <div>
-                    <p class="text-xs text-slate-400">ВРЕМЯ</p>
-                    <p id="gameover-time" class="text-xl font-bold text-white">0 с</p>
+            <div id="gameover-icon" class="text-7xl mb-2 relative z-10 drop-shadow-lg transform transition-transform duration-500 scale-0">🏆</div>
+            <h2 id="gameover-title" class="text-4xl font-black text-white mb-2 relative z-10 tracking-tight">Победа!</h2>
+            <p id="gameover-message" class="text-slate-400 mb-6 relative z-10 font-medium">Поле успешно разминировано.</p>
+            
+            <div class="bg-slate-800/80 backdrop-blur rounded-xl p-5 mb-6 flex justify-around border border-slate-700 relative z-10">
+                <div class="text-center">
+                    <i class="fa-regular fa-clock text-slate-500 mb-1 text-lg"></i>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Время</p>
+                    <p id="gameover-time" class="text-2xl font-black text-white font-mono">0<span class="text-sm text-slate-400 font-sans ml-1">сек</span></p>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-400">СЛОЖНОСТЬ</p>
-                    <p id="gameover-diff" class="text-xl font-bold text-blue-400">Новичок</p>
+                <div class="w-px bg-slate-700"></div>
+                <div class="text-center">
+                    <i class="fa-solid fa-layer-group text-slate-500 mb-1 text-lg"></i>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Сложность</p>
+                    <p id="gameover-diff" class="text-2xl font-black text-blue-400">Новичок</p>
                 </div>
             </div>
 
-            <button id="btn-play-again" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">
+            <button id="btn-play-again" class="relative z-10 w-full bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-lg transition-all active:scale-95 uppercase tracking-wider text-sm border-b-4 border-green-700 active:border-b-0 active:translate-y-1">
                 Играть снова
             </button>
         </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО: СТАТИСТИКА -->
+    <!-- СТАТИСТИКА -->
     <div id="modal-stats" class="modal-overlay">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white">Статистика</h2>
-                <button class="close-modal text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-white uppercase tracking-wide">Статистика</h2>
+                <button class="close-modal w-8 h-8 flex justify-center items-center rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div id="stats-container" class="space-y-4">
-                <!-- Статистика будет заполнена через JS -->
+            <div id="stats-container" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Заполняется через JS -->
             </div>
 
-            <button id="btn-clear-stats" class="mt-4 w-full bg-red-900 hover:bg-red-800 text-red-200 text-sm py-2 rounded transition-colors border border-red-700">
+            <button id="btn-clear-stats" class="mt-6 w-full bg-slate-800 hover:bg-red-900/30 text-red-400 font-bold py-3 rounded-xl transition-colors border border-slate-700 hover:border-red-800">
                 Сбросить статистику
             </button>
         </div>
     </div>
 
     <!-- ======================================================================= -->
-    <!-- ОСНОВНОЙ JAVASCRIPT КОД ДВИЖКА -->
-    <!-- ======================================================================= -->
-    <script>
-        /**
-         * Утилита для глубокого копирования и безопасной математики
-         */
-        const Utils = {
-            padZero: (num, size = 3) => {
-                let s = num + "";
-                while (s.length < size) s = "0" + s;
-                return s;
-            },
-            randomInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
-        };
-
-        /**
-         * ==========================================
-         * 1. ЗВУКОВОЙ ДВИЖОК (Web Audio API)
-         * Генерирует звуки на лету без загрузки mp3 файлов.
-         * ==========================================
-         */
-        class SoundEngine {
-            constructor() {
-                this.ctx = null;
-                this.enabled = true;
-            }
-
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
-                }
-            }
-
-            // Звук обычного копания (глухой, короткий щелчок)
-            playDig() {
-                if (!this.enabled || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.05);
-                
-                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.05);
-            }
-
-            // Звук установки флажка (высокий мелодичный "пинь")
-            playFlag() {
-                if (!this.enabled || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(880, this.ctx.currentTime); // Ля второй октавы
-                
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.15);
-            }
-
-            // Звук снятия флажка (ниже по тональности)
-            playUnflag() {
-                if (!this.enabled || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(660, this.ctx.currentTime); 
-                
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.15);
-            }
-
-            // Эффект взрыва (шумовой генератор)
-            playExplosion() {
-                if (!this.enabled || !this.ctx) return;
-                const bufferSize = this.ctx.sampleRate * 0.5; // полсекунды
-                const buff
+    <!-- ОСНОВНОЙ JAVASCRIPT ДВИЖОК                                
