@@ -1,11 +1,11 @@
-```html
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Супер Сапёр PRO</title>
-    <!-- Используем Tailwind CSS для современного оформления -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -25,7 +25,6 @@
             --grid-gap: 2px;
         }
 
-        /* Адаптация размера клеток для мобильных */
         @media (max-width: 600px) {
             :root { --cell-size: 30px; }
         }
@@ -35,19 +34,17 @@
             color: var(--text-color);
             font-family: 'Roboto', sans-serif;
             overflow: hidden;
-            touch-action: none; /* Блокировка зума и свайпов */
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* Цифровой шрифт */
         .digital-font {
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 2px;
             text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
         }
 
-        /* Контейнер со скроллом */
         #game-container-wrapper {
             width: 100%;
             height: calc(100vh - 150px);
@@ -59,9 +56,8 @@
             position: relative;
         }
 
-        /* Сетка игры */
         #game-board {
-            display: grid;
+            display: inline-grid;
             gap: var(--grid-gap);
             background-color: #0f172a;
             padding: 4px;
@@ -70,13 +66,15 @@
             border: 2px solid #334155;
             margin: auto;
             transition: filter 0.3s;
+            /* Выключаем контекстное меню жестко */
+            -webkit-touch-callout: none; 
         }
 
         #game-board.game-over {
             filter: grayscale(0.5);
+            pointer-events: none;
         }
 
-        /* Клетка */
         .cell {
             width: var(--cell-size);
             height: var(--cell-size);
@@ -97,14 +95,12 @@
             box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4);
         }
 
-        /* Открытая клетка */
         .cell.revealed {
             background-color: var(--cell-open);
             box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2);
             cursor: default;
         }
 
-        /* Цвета цифр */
         .cell[data-value="1"] { color: #1d4ed8; }
         .cell[data-value="2"] { color: #15803d; }
         .cell[data-value="3"] { color: #b91c1c; }
@@ -114,7 +110,6 @@
         .cell[data-value="7"] { color: #000000; }
         .cell[data-value="8"] { color: #52525b; }
 
-        /* Анимации */
         @keyframes explode {
             0% { transform: scale(1); background-color: #ef4444; }
             50% { transform: scale(1.3); background-color: #fca5a5; z-index: 10;}
@@ -139,7 +134,6 @@
         .cell .mine-icon { color: #111827; }
         .cell.wrong-flag .flag-icon { color: #94a3b8; }
         
-        /* Крестик для неверного флага */
         .cell.wrong-flag::after {
             content: '❌';
             position: absolute;
@@ -150,15 +144,13 @@
 
         @media (hover: hover) {
             .cell:hover:not(.revealed) { background-color: var(--cell-closed-hover); }
-            .cell.revealed[data-value]:hover { background-color: #e2e8f0; } /* Подсветка для аккорда */
+            .cell.revealed[data-value]:hover { background-color: #e2e8f0; }
         }
 
-        /* Эффект нажатия на цифру для аккорда */
         .cell.revealed.chord-active {
             filter: brightness(0.9);
         }
 
-        /* Модальные окна */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.8);
@@ -190,13 +182,11 @@
             border-color: #2563eb !important;
         }
 
-        /* Скроллбары */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 5px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; border: 2px solid var(--bg-color); }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         
-        /* Класс для активной сложности */
         .diff-btn-active {
             background-color: #2563eb !important;
             border-color: #60a5fa !important;
@@ -205,7 +195,6 @@
 </head>
 <body class="flex flex-col h-screen">
 
-    <!-- CANVAS ДЛЯ ВИЗУАЛЬНЫХ ЭФФЕКТОВ -->
     <canvas id="effects-canvas"></canvas>
 
     <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
@@ -229,17 +218,14 @@
 
     <!-- ИГРОВАЯ ИНФО-ПАНЕЛЬ -->
     <div class="bg-slate-900 px-4 py-3 flex justify-between items-center shadow-inner border-b border-slate-800">
-        <!-- Счетчик мин -->
         <div class="bg-black border-2 border-slate-700 rounded-lg p-1.5 flex items-center min-w-[85px] justify-center shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
             <span id="mines-count" class="digital-font text-red-500 text-3xl font-bold leading-none tracking-widest">000</span>
         </div>
 
-        <!-- Кнопка рестарта (Лицо) -->
         <button id="btn-restart" class="w-14 h-14 bg-slate-200 hover:bg-white rounded-full flex justify-center items-center text-3xl shadow-[0_0_15px_rgba(255,255,255,0.1),inset_0_-4px_8px_rgba(0,0,0,0.2)] transition-all active:scale-90 active:shadow-[inset_0_4px_8px_rgba(0,0,0,0.3)] border-4 border-slate-400">
             🙂
         </button>
 
-        <!-- Таймер -->
         <div class="bg-black border-2 border-slate-700 rounded-lg p-1.5 flex items-center min-w-[85px] justify-center shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
             <span id="timer-count" class="digital-font text-red-500 text-3xl font-bold leading-none tracking-widest">000</span>
         </div>
@@ -256,14 +242,11 @@
     </div>
 
     <!-- ИГРОВОЕ ПОЛЕ -->
-    <main id="game-container-wrapper" class="flex-grow">
+    <main id="game-container-wrapper" class="flex-grow relative">
         <div id="game-board" oncontextmenu="return false;"></div>
     </main>
 
-    <!-- ======================================================================= -->
     <!-- МОДАЛЬНЫЕ ОКНА -->
-    <!-- ======================================================================= -->
-
     <!-- НАСТРОЙКИ -->
     <div id="modal-settings" class="modal-overlay">
         <div class="modal-content">
@@ -275,8 +258,8 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Сложность</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start" data-level="beginner">
+                    <div class="grid grid-cols-2 gap-3" id="difficulty-selector">
+                        <button class="diff-btn bg-slate-800 border-2 border-slate-600 hover:border-blue-400 text-white p-3 rounded-xl transition-all text-left flex flex-col items-start diff-btn-active" data-level="beginner">
                             <span class="font-bold text-lg">Новичок</span>
                             <span class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-border-all mr-1"></i>9x9 <i class="fa-solid fa-bomb ml-2 mr-1"></i>10</span>
                         </button>
@@ -298,16 +281,16 @@
                 <div id="custom-settings" class="hidden bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner">
                     <div class="grid grid-cols-3 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-slate-400 text-xs mb-1 text-center">Ширина</label>
-                            <input type="number" id="custom-width" min="5" max="100" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
+                            <label class="text-slate-400 text-xs mb-1 text-center">Шир.</label>
+                            <input type="number" id="custom-width" min="5" max="50" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-slate-400 text-xs mb-1 text-center">Высота</label>
-                            <input type="number" id="custom-height" min="5" max="100" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
+                            <label class="text-slate-400 text-xs mb-1 text-center">Выс.</label>
+                            <input type="number" id="custom-height" min="5" max="50" value="10" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-blue-500 focus:outline-none transition-colors">
                         </div>
                         <div class="flex flex-col">
                             <label class="text-slate-400 text-xs mb-1 text-center text-red-400">Мины</label>
-                            <input type="number" id="custom-mines" min="1" value="15" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-red-500 focus:outline-none transition-colors">
+                            <input type="number" id="custom-mines" min="1" max="999" value="15" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-white text-center font-bold focus:border-red-500 focus:outline-none transition-colors">
                         </div>
                     </div>
                 </div>
@@ -368,7 +351,7 @@
             </div>
             
             <div id="stats-container" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                <!-- Заполняется через JS -->
+                <!-- Статистика генерируется через JS -->
             </div>
 
             <button id="btn-clear-stats" class="mt-6 w-full bg-slate-800 hover:bg-red-900/30 text-red-400 font-bold py-3 rounded-xl transition-colors border border-slate-700 hover:border-red-800">
@@ -377,5 +360,25 @@
         </div>
     </div>
 
-    <!-- ======================================================================= -->
-    <!-- ОСНОВНОЙ JAVASCRIPT ДВИЖОК                                
+    <!-- JAVASCRIPT ДВИЖОК -->
+    <script>
+        // --- КОНФИГУРАЦИЯ И СОСТОЯНИЕ ---
+        const CONFIG = {
+            levels: {
+                beginner: { cols: 9, rows: 9, mines: 10, name: 'Новичок' },
+                intermediate: { cols: 16, rows: 16, mines: 40, name: 'Любитель' },
+                expert: { cols: 30, rows: 16, mines: 99, name: 'Профи' },
+                custom: { cols: 10, rows: 10, mines: 15, name: 'Своя игра' }
+            }
+        };
+
+        let state = {
+            level: 'beginner',
+            cols: 9, rows: 9, totalMines: 10,
+            grid: [],
+            status: 'idle', // idle, playing, won, lost
+            flagsCount: 0,
+            timeElapsed: 0,
+            openedCells: 0,
+            timerInterval: null,
+            interactionMo
