@@ -1,0 +1,447 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Супер Сапёр PRO</title>
+    <!-- Используем Tailwind CSS для современного оформления -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ==========================================================================
+           ПОЛЬЗОВАТЕЛЬСКИЕ СТИЛИ И АНИМАЦИИ
+           ========================================================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --cell-size: 36px; /* Базовый размер клетки */
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --cell-closed: #334155;
+            --cell-closed-hover: #475569;
+            --cell-open: #cbd5e1;
+            --text-color: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden; /* Запрещаем скролл всей страницы, скроллится только поле */
+            touch-action: none; /* Отключаем стандартные жесты браузера для корректной работы игры */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Цифровой шрифт для таймера и счетчиков */
+        .digital-font {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        /* Контейнер игрового поля со скроллом для больших карт */
+        #game-container-wrapper {
+            width: 100%;
+            height: calc(100vh - 160px); /* Высота минус шапка и панель */
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Само игровое поле (Grid) */
+        #game-board {
+            display: grid;
+            gap: 2px;
+            background-color: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #334155;
+            margin: auto; /* Для центрирования в flex-контейнере */
+        }
+
+        /* Стили отдельной клетки */
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: var(--cell-closed);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.1s;
+            box-shadow: inset 2px 2px 0px rgba(255,255,255,0.2), inset -2px -2px 0px rgba(0,0,0,0.3);
+        }
+
+        .cell:active:not(.revealed) {
+            transform: scale(0.95);
+        }
+
+        /* Состояние открытой клетки */
+        .cell.revealed {
+            background-color: var(--cell-open);
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3);
+            cursor: default;
+        }
+
+        /* Стилизация цифр (как в классике) */
+        .cell[data-value="1"] { color: #1d4ed8; } /* Синий */
+        .cell[data-value="2"] { color: #15803d; } /* Зеленый */
+        .cell[data-value="3"] { color: #b91c1c; } /* Красный */
+        .cell[data-value="4"] { color: #6d28d9; } /* Фиолетовый */
+        .cell[data-value="5"] { color: #7c2d12; } /* Темно-красный */
+        .cell[data-value="6"] { color: #0f766e; } /* Бирюзовый */
+        .cell[data-value="7"] { color: #000000; } /* Черный */
+        .cell[data-value="8"] { color: #52525b; } /* Серый */
+
+        /* Анимация взрыва клетки */
+        @keyframes explode {
+            0% { transform: scale(1); background-color: #ef4444; }
+            50% { transform: scale(1.2); background-color: #fca5a5; }
+            100% { transform: scale(1); background-color: #ef4444; }
+        }
+        .cell.exploded {
+            animation: explode 0.4s ease-out forwards;
+            color: black;
+            font-size: 24px;
+            z-index: 10;
+        }
+
+        /* Анимация появления флага */
+        @keyframes pop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .cell .flag-icon {
+            display: inline-block;
+            animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            color: #ef4444;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* Ховер эффект для закрытых клеток на ПК */
+        @media (hover: hover) {
+            .cell:hover:not(.revealed) {
+                background-color: var(--cell-closed-hover);
+            }
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: var(--panel-bg);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Канвас для эффектов частиц (поверх всего) */
+        #effects-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Пропускает клики сквозь себя */
+            z-index: 40;
+        }
+
+        /* Класс для активной кнопки режима на мобильных */
+        .mode-btn-active {
+            box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            border-color: #3b82f6;
+        }
+
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- CANVAS ДЛЯ ЧАСТИЦ (ВЗРЫВЫ, КОНФЕТТИ) -->
+    <canvas id="effects-canvas"></canvas>
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ ИНСТРУМЕНТОВ -->
+    <header class="bg-slate-800 p-3 shadow-lg flex justify-between items-center z-10 border-b border-slate-700">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-bomb text-red-500 text-2xl"></i>
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-yellow-500 hidden sm:block">САПЁР PRO</h1>
+        </div>
+        
+        <!-- Кнопки управления (Настройки, Статистика) -->
+        <div class="flex gap-3">
+            <button id="btn-stats" class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-blue-400" title="Статистика">
+                <i class="fa-solid fa-chart-simple"></i>
+            </button>
+            <button id="btn-settings" class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-slate-300" title="Настройки">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ИГРОВАЯ ПАНЕЛЬ (СЧЕТЧИКИ И СМАЙЛИК) -->
+    <div class="bg-slate-900 p-4 flex justify-between items-center shadow-inner border-b border-slate-800">
+        <!-- Счетчик оставшихся мин -->
+        <div class="bg-black border-2 border-slate-700 rounded p-2 flex items-center min-w-[80px] justify-center">
+            <span id="mines-count" class="digital-font text-red-500 text-3xl font-bold leading-none">000</span>
+        </div>
+
+        <!-- Кнопка рестарта (Смайлик) -->
+        <button id="btn-restart" class="w-12 h-12 bg-slate-300 hover:bg-white rounded-full flex justify-center items-center text-2xl shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all active:scale-95 border-2 border-slate-400">
+            😎
+        </button>
+
+        <!-- Таймер -->
+        <div class="bg-black border-2 border-slate-700 rounded p-2 flex items-center min-w-[80px] justify-center">
+            <span id="timer-count" class="digital-font text-red-500 text-3xl font-bold leading-none">000</span>
+        </div>
+    </div>
+
+    <!-- ПАНЕЛЬ УПРАВЛЕНИЯ РЕЖИМАМИ ДЛЯ МОБИЛЬНЫХ -->
+    <div class="bg-slate-800 p-2 flex justify-center gap-4 sm:hidden z-10 border-b border-slate-700 shadow-md">
+        <button id="mode-dig" class="flex-1 py-2 rounded-lg bg-slate-700 text-white font-bold border-2 border-transparent transition-all flex justify-center items-center gap-2 mode-btn-active">
+            <i class="fa-solid fa-person-digging"></i> Копать
+        </button>
+        <button id="mode-flag" class="flex-1 py-2 rounded-lg bg-slate-700 text-white font-bold border-2 border-transparent transition-all flex justify-center items-center gap-2">
+            <i class="fa-solid fa-flag text-red-400"></i> Флаг
+        </button>
+    </div>
+
+    <!-- КОНТЕЙНЕР ДЛЯ ИГРОВОГО ПОЛЯ -->
+    <main id="game-container-wrapper" class="flex-grow">
+        <!-- Поле генерируется динамически через JS -->
+        <div id="game-board" oncontextmenu="return false;"></div>
+    </main>
+
+    <!-- ======================================================================= -->
+    <!-- МОДАЛЬНЫЕ ОКНА -->
+    <!-- ======================================================================= -->
+
+    <!-- МОДАЛЬНОЕ ОКНО: НАСТРОЙКИ -->
+    <div id="modal-settings" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white">Настройки</h2>
+                <button class="close-modal text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-slate-300 text-sm font-bold mb-2">Сложность</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="beginner">Новичок<br><span class="text-xs text-slate-300">9x9, 10 мин</span></button>
+                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="intermediate">Любитель<br><span class="text-xs text-slate-300">16x16, 40 мин</span></button>
+                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="expert">Профи<br><span class="text-xs text-slate-300">30x16, 99 мин</span></button>
+                        <button class="diff-btn bg-slate-700 hover:bg-blue-600 text-white py-2 rounded transition-colors" data-level="custom">Своя игра</button>
+                    </div>
+                </div>
+
+                <!-- Блок пользовательских настроек (скрыт по умолчанию) -->
+                <div id="custom-settings" class="hidden space-y-2 bg-slate-800 p-3 rounded-lg border border-slate-600">
+                    <div class="flex items-center justify-between">
+                        <label class="text-slate-300 text-sm">Ширина:</label>
+                        <input type="number" id="custom-width" min="5" max="50" value="10" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-slate-300 text-sm">Высота:</label>
+                        <input type="number" id="custom-height" min="5" max="50" value="10" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-slate-300 text-sm">Мины:</label>
+                        <input type="number" id="custom-mines" min="1" value="15" class="w-16 bg-slate-900 border border-slate-600 rounded p-1 text-white text-center">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-4">
+                    <label class="text-slate-300 font-bold">Звук</label>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-sound" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <button id="btn-apply-settings" class="mt-6 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">
+                Применить и Начать
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: КОНЕЦ ИГРЫ (ПОБЕДА/ПОРАЖЕНИЕ) -->
+    <div id="modal-gameover" class="modal-overlay">
+        <div class="modal-content text-center">
+            <div id="gameover-icon" class="text-6xl mb-4">🏆</div>
+            <h2 id="gameover-title" class="text-3xl font-bold text-white mb-2">Победа!</h2>
+            <p id="gameover-message" class="text-slate-300 mb-6">Вы разминировали поле.</p>
+            
+            <div class="bg-slate-800 rounded-lg p-4 mb-6 flex justify-around">
+                <div>
+                    <p class="text-xs text-slate-400">ВРЕМЯ</p>
+                    <p id="gameover-time" class="text-xl font-bold text-white">0 с</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400">СЛОЖНОСТЬ</p>
+                    <p id="gameover-diff" class="text-xl font-bold text-blue-400">Новичок</p>
+                </div>
+            </div>
+
+            <button id="btn-play-again" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">
+                Играть снова
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: СТАТИСТИКА -->
+    <div id="modal-stats" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white">Статистика</h2>
+                <button class="close-modal text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div id="stats-container" class="space-y-4">
+                <!-- Статистика будет заполнена через JS -->
+            </div>
+
+            <button id="btn-clear-stats" class="mt-4 w-full bg-red-900 hover:bg-red-800 text-red-200 text-sm py-2 rounded transition-colors border border-red-700">
+                Сбросить статистику
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- ОСНОВНОЙ JAVASCRIPT КОД ДВИЖКА -->
+    <!-- ======================================================================= -->
+    <script>
+        /**
+         * Утилита для глубокого копирования и безопасной математики
+         */
+        const Utils = {
+            padZero: (num, size = 3) => {
+                let s = num + "";
+                while (s.length < size) s = "0" + s;
+                return s;
+            },
+            randomInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        };
+
+        /**
+         * ==========================================
+         * 1. ЗВУКОВОЙ ДВИЖОК (Web Audio API)
+         * Генерирует звуки на лету без загрузки mp3 файлов.
+         * ==========================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+            }
+
+            // Звук обычного копания (глухой, короткий щелчок)
+            playDig() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            // Звук установки флажка (высокий мелодичный "пинь")
+            playFlag() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, this.ctx.currentTime); // Ля второй октавы
+                
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            // Звук снятия флажка (ниже по тональности)
+            playUnflag() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(660, this.ctx.currentTime); 
+                
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            // Эффект взрыва (шумовой генератор)
+            playExplosion() {
+                if (!this.enabled || !this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 0.5; // полсекунды
+                const buff
