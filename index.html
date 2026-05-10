@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON RHYTHM X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Rhythm X</title>
 
 <style>
 *{
@@ -15,19 +15,18 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:#050505;
+background:#020202;
 overflow:hidden;
 height:100vh;
-color:white;
 }
 
 #app{
 position:relative;
 width:100vw;
 height:100vh;
-overflow:hidden;
 background:
-radial-gradient(circle at top,#111,#000 70%);
+radial-gradient(circle at top,#111,#000 60%);
+overflow:hidden;
 }
 
 canvas{
@@ -45,7 +44,7 @@ justify-content:center;
 align-items:center;
 flex-direction:column;
 z-index:20;
-background:rgba(0,0,0,.85);
+background:rgba(0,0,0,.82);
 backdrop-filter:blur(12px);
 padding:20px;
 }
@@ -54,40 +53,40 @@ padding:20px;
 display:flex;
 }
 
-h1{
+.title{
 font-size:4rem;
+font-weight:900;
 margin-bottom:30px;
 color:#00fff7;
-text-shadow:0 0 20px #00fff7;
-text-align:center;
+text-shadow:
+0 0 10px #00fff7,
+0 0 30px #00fff7;
 }
 
 .btn{
-width:min(400px,90vw);
+width:min(420px,90vw);
 padding:18px;
 margin:10px;
 border:none;
-border-radius:18px;
-background:rgba(255,255,255,.08);
+border-radius:22px;
+background:linear-gradient(180deg,#171717,#0a0a0a);
 color:white;
 font-size:1.1rem;
 font-weight:bold;
-cursor:pointer;
-transition:.2s;
-border:1px solid rgba(255,255,255,.08);
-}
-
-.btn:active{
-transform:scale(.96);
+box-shadow:
+0 0 20px rgba(0,255,255,.15),
+inset 0 0 10px rgba(255,255,255,.06);
+border:1px solid rgba(0,255,255,.2);
 }
 
 .song{
 width:min(500px,95vw);
 padding:18px;
-margin:8px;
-border-radius:18px;
-background:rgba(255,255,255,.06);
+margin:10px;
+border-radius:24px;
+background:rgba(255,255,255,.05);
 border:1px solid rgba(255,255,255,.08);
+box-shadow:0 0 20px rgba(0,0,0,.4);
 }
 
 .song h2{
@@ -96,52 +95,34 @@ margin-bottom:5px;
 
 #ui{
 position:absolute;
-top:0;
-left:0;
-width:100%;
-padding:15px;
+top:15px;
+left:15px;
+right:15px;
 display:none;
 justify-content:space-between;
-align-items:center;
 z-index:10;
 }
 
-.uiBox{
+.box{
 background:rgba(0,0,0,.45);
-padding:12px 16px;
-border-radius:15px;
-font-weight:bold;
+padding:12px 18px;
+border-radius:18px;
 backdrop-filter:blur(10px);
-}
-
-#hpWrap{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:8px;
-background:#111;
-z-index:11;
-}
-
-#hp{
-height:100%;
-width:100%;
-background:linear-gradient(90deg,#00ff88,#00fff7);
-transition:.2s;
+border:1px solid rgba(255,255,255,.08);
+font-weight:bold;
 }
 
 #feedback{
 position:absolute;
-top:45%;
+top:42%;
 left:50%;
 transform:translate(-50%,-50%);
 font-size:4rem;
 font-weight:900;
 opacity:0;
 transition:.15s;
-z-index:12;
 pointer-events:none;
+z-index:11;
 }
 
 #countdown{
@@ -149,51 +130,47 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:7rem;
+font-size:8rem;
 font-weight:900;
-z-index:15;
-display:none;
+color:white;
 text-shadow:0 0 20px white;
+display:none;
+z-index:11;
 }
 
-#exitBtn{
+#hpWrap{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:7px;
+background:#111;
+z-index:12;
+}
+
+#hp{
+width:100%;
+height:100%;
+background:linear-gradient(90deg,#00ff88,#00fff7);
+}
+
+#exit{
 position:absolute;
 bottom:20px;
 right:20px;
-padding:15px 20px;
+padding:14px 20px;
 border:none;
-border-radius:15px;
+border-radius:18px;
 background:rgba(255,0,0,.2);
 color:white;
-font-weight:bold;
 z-index:20;
 display:none;
 }
 
-.setting{
-margin:12px;
-font-size:1.1rem;
-}
-
-input[type='checkbox']{
-transform:scale(1.3);
-margin-left:10px;
-}
-
-@media (max-width:700px){
-
-h1{
-font-size:2.5rem;
-}
-
-#feedback{
-font-size:3rem;
-}
-
-#countdown{
-font-size:5rem;
-}
-
+@media(max-width:700px){
+.title{font-size:2.5rem;}
+#feedback{font-size:3rem;}
+#countdown{font-size:5rem;}
 }
 </style>
 </head>
@@ -203,86 +180,68 @@ font-size:5rem;
 
 <canvas id="game"></canvas>
 
-<div id="hpWrap">
-<div id="hp"></div>
-</div>
+<div id="hpWrap"><div id="hp"></div></div>
 
 <div id="ui">
-<div class="uiBox">Score: <span id="score">0</span></div>
-<div class="uiBox">Combo: <span id="combo">0</span></div>
-<div class="uiBox">Miss: <span id="miss">0</span>/10</div>
+<div class="box">Score: <span id="score">0</span></div>
+<div class="box">Combo: <span id="combo">0</span></div>
+<div class="box">Miss: <span id="miss">0</span>/10</div>
 </div>
 
 <div id="feedback"></div>
 <div id="countdown"></div>
+<button id="exit">ВЫЙТИ</button>
 
-<button id="exitBtn">ВЫЙТИ</button>
-
-<!-- MENU -->
 <div class="screen active" id="menu">
-<h1>NEON RHYTHM X</h1>
+<div class="title">NEON RHYTHM X</div>
 <button class="btn" onclick="openSongs()">ИГРАТЬ</button>
-<button class="btn" onclick="openSettings()">НАСТРОЙКИ</button>
 </div>
 
-<!-- SONGS -->
 <div class="screen" id="songs">
-<h1>ПЕСНИ</h1>
+<div class="title">SONGS</div>
 
-<div class="song" onclick="startLevel(0)">
+<div class="song" onclick="startGame(4,40,'songs/fur-elise.mp3')">
 <h2>Fur Elise</h2>
 <p>Очень легко</p>
 </div>
 
-<div class="song" onclick="startLevel(1)">
+<div class="song" onclick="startGame(6,70,'songs/river.mp3')">
 <h2>River Flows In You</h2>
 <p>Легко</p>
 </div>
 
-<div class="song" onclick="startLevel(2)">
+<div class="song" onclick="startGame(8,120,'songs/interstellar.mp3')">
 <h2>Interstellar</h2>
 <p>Средне</p>
 </div>
 
-<div class="song" onclick="startLevel(3)">
-<h2>Experience</h2>
+<div class="song" onclick="startGame(10,200,'songs/rush-e.mp3')">
+<h2>Rush E</h2>
 <p>Сложно</p>
 </div>
 
-<div class="song" onclick="startLevel(4)">
-<h2>Rush E</h2>
-<p>Очень сложно</p>
+<button class="btn" onclick="show('menu')">НАЗАД</button>
 </div>
 
-<button class="btn" onclick="showScreen('menu')">НАЗАД</button>
-</div>
-
-<!-- SETTINGS -->
-<div class="screen" id="settings">
-<h1>НАСТРОЙКИ</h1>
-
-<div class="setting">
-Эффекты
-<input type="checkbox" id="effects" checked>
-</div>
-
-<div class="setting">
-Режим спама
-<input type="checkbox" id="spamMode">
-</div>
-
-<button class="btn" onclick="showScreen('menu')">СОХРАНИТЬ</button>
-</div>
-
-<!-- GAMEOVER -->
 <div class="screen" id="gameover">
-<h1>ИГРА ОКОНЧЕНА</h1>
-<h2 id="finalText"></h2>
+<div class="title">GAME OVER</div>
+<h2 id="final"></h2>
 <button class="btn" onclick="openSongs()">СНОВА</button>
-<button class="btn" onclick="showScreen('menu')">МЕНЮ</button>
+<button class="btn" onclick="show('menu')">МЕНЮ</button>
 </div>
 
 </div>
+
+<!--
+ДОБАВЬ MP3 ФАЙЛЫ В ПАПКУ /songs/
+
+songs/fur-elise.mp3
+songs/river.mp3
+songs/interstellar.mp3
+songs/experience.mp3
+songs/rush-e.mp3
+
+-->
 
 <script>
 
@@ -290,165 +249,136 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 function resize(){
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 }
-
 resize();
-window.addEventListener('resize',resize);
+addEventListener('resize',resize);
 
 const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-const tracks = 4;
-let laneWidth = canvas.width / tracks;
+const lanes = 4;
 
-let notes = [];
-let particles = [];
+let laneWidth;
+let hitY;
 
-let score = 0;
-let combo = 0;
-let miss = 0;
-let hp = 100;
+let notes=[];
+let particles=[];
 
-let gameRunning = false;
-let effects = true;
-let spamMode = false;
+let score=0;
+let combo=0;
+let miss=0;
+let hp=100;
 
-const controls = ['d','f','j','k'];
+let speed=6;
+let currentAudio = null;
+let playing=false;
+if(currentAudio){
+currentAudio.pause();
+currentAudio.currentTime = 0;
+}
 
-const levels = [
-{speed:5, amount:40},
-{speed:6, amount:60},
-{speed:7, amount:90},
-{speed:8, amount:120},
-{speed:10, amount:170}
-];
+function updateSizes(){
+laneWidth = canvas.width/lanes;
+hitY = canvas.height-180;
+}
 
-const hitY = () => canvas.height - 180;
+updateSizes();
 
-function showScreen(id){
+function show(id){
 document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 if(id) document.getElementById(id).classList.add('active');
 }
 
 function openSongs(){
-showScreen('songs');
+show('songs');
 }
 
-function openSettings(){
-showScreen('settings');
-}
+function startGame(gameSpeed,count,song=''){
 
-function generateLevel(data){
+speed=gameSpeed;
 notes=[];
-
-for(let i=0;i<data.amount;i++){
-notes.push({
-track:Math.floor(Math.random()*4),
-y:-i*220,
-speed:data.speed,
-hit:false
-});
-}
-}
-
-function startLevel(id){
+particles=[];
 
 score=0;
 combo=0;
 miss=0;
 hp=100;
 
-notes=[];
-particles=[];
+for(let i=0;i<count;i++){
+notes.push({
+track:Math.floor(Math.random()*4),
+y:-i*220,
+hit:false
+});
+}
 
-laneWidth = canvas.width / tracks;
+show();
 
-showScreen();
+if(currentAudio){
+currentAudio.pause();
+currentAudio = null;
+}
 
-const countdown = document.getElementById('countdown');
-countdown.style.display='block';
+currentAudio = new Audio(song);
+currentAudio.volume = 0.8;
 
-let n = 3;
-countdown.innerText=n;
+const c = document.getElementById('countdown');
+c.style.display='block';
 
-const interval = setInterval(()=>{
+let n=3;
+c.innerText=n;
+
+const interval=setInterval(()=>{
 
 n--;
 
-if(n>0){
-countdown.innerText=n;
-}
-else if(n===0){
-countdown.innerText='START!';
-}
+if(n>0) c.innerText=n;
+else if(n===0) c.innerText='START!';
 else{
 clearInterval(interval);
-countdown.style.display='none';
-begin(id);
+c.style.display='none';
+realStart();
+currentAudio.play();
 }
 
 },1000);
 
 }
 
-function begin(id){
-
-effects = document.getElementById('effects').checked;
-spamMode = document.getElementById('spamMode').checked;
-
-gameRunning = true;
-
-generateLevel(levels[id]);
-
+function realStart(){
+playing=true;
 document.getElementById('ui').style.display='flex';
-document.getElementById('exitBtn').style.display='block';
-
+document.getElementById('exit').style.display='block';
 requestAnimationFrame(loop);
 }
 
 function endGame(){
-
-gameRunning=false;
-
+playing=false;
+if(currentAudio){
+currentAudio.pause();
+currentAudio.currentTime = 0;
+}
 document.getElementById('ui').style.display='none';
-document.getElementById('exitBtn').style.display='none';
-
-document.getElementById('finalText').innerText = 'Счёт: ' + score;
-
-showScreen('gameover');
+document.getElementById('exit').style.display='none';
+document.getElementById('final').innerText='Счёт: '+score;
+show('gameover');
 }
 
-function updateUI(){
-
-document.getElementById('score').innerText=score;
-document.getElementById('combo').innerText=combo;
-document.getElementById('miss').innerText=miss;
-document.getElementById('hp').style.width = hp + '%';
-
-}
-
-function feedback(text,color){
-
-const el = document.getElementById('feedback');
-
-el.innerText=text;
-el.style.color=color;
-el.style.opacity=1;
-el.style.transform='translate(-50%,-50%) scale(1.3)';
-
+function fx(text,color){
+const f=document.getElementById('feedback');
+f.innerText=text;
+f.style.color=color;
+f.style.opacity=1;
+f.style.transform='translate(-50%,-50%) scale(1.3)';
 setTimeout(()=>{
-el.style.opacity=0;
-el.style.transform='translate(-50%,-50%) scale(1)';
-},200);
-
+f.style.opacity=0;
+f.style.transform='translate(-50%,-50%) scale(1)';
+},150);
 }
 
-function createParticles(x,y,color){
-
-if(!effects) return;
-
-for(let i=0;i<15;i++){
+function spawn(x,y,color){
+for(let i=0;i<12;i++){
 particles.push({
 x,y,
 vx:(Math.random()-.5)*8,
@@ -457,43 +387,34 @@ life:30,
 color
 });
 }
-
 }
 
 function hit(track){
+if(!playing) return;
 
-if(!gameRunning) return;
-
-let found = false;
+let success=false;
 
 for(let n of notes){
 
 if(n.hit) continue;
+if(n.track!==track) continue;
 
-if(n.track !== track) continue;
+const dist=Math.abs(n.y-hitY);
 
-const dist = Math.abs(n.y - hitY());
+if(dist<90){
 
-if(dist < 90){
-
-n.hit = true;
-found = true;
-
+n.hit=true;
+success=true;
 combo++;
-score += 100 * combo;
+score+=100*combo;
 
-if(dist < 35){
-feedback('PERFECT','#00ff88');
-}
-else{
-feedback('GOOD','#ffe600');
+if(dist<35){
+fx('PERFECT','#00ff88');
+}else{
+fx('GOOD','#ffe600');
 }
 
-createParticles(
-track*laneWidth+laneWidth/2,
-hitY(),
-'#00fff7'
-);
+spawn(track*laneWidth+laneWidth/2,hitY,'#00fff7');
 
 break;
 
@@ -501,84 +422,67 @@ break;
 
 }
 
-if(!found && !spamMode){
+if(!success){
 combo=0;
 miss++;
 hp-=10;
-feedback('MISS','#ff3c3c');
+fx('MISS','#ff4444');
 }
 
-if(miss>=10 || hp<=0){
+if(miss>=10||hp<=0){
 endGame();
 }
 
 updateUI();
-
 }
 
-window.addEventListener('keydown',e=>{
-
-const idx = controls.indexOf(e.key.toLowerCase());
-
-if(idx !== -1){
-hit(idx);
-}
-
+addEventListener('keydown',e=>{
+const keys=['d','f','j','k'];
+const idx=keys.indexOf(e.key.toLowerCase());
+if(idx!==-1) hit(idx);
 });
 
 canvas.addEventListener('touchstart',e=>{
-
 if(!mobile) return;
-
-const rect = canvas.getBoundingClientRect();
-
+const rect=canvas.getBoundingClientRect();
 for(let t of e.touches){
-
-const x = t.clientX - rect.left;
-
-const lane = Math.floor(x / (rect.width/4));
-
+const x=t.clientX-rect.left;
+const lane=Math.floor(x/(rect.width/4));
 hit(lane);
-
 }
-
 });
+
+function updateUI(){
+document.getElementById('score').innerText=score;
+document.getElementById('combo').innerText=combo;
+document.getElementById('miss').innerText=miss;
+document.getElementById('hp').style.width=hp+'%';
+}
 
 function drawTracks(){
 
 for(let i=0;i<4;i++){
 
-ctx.fillStyle = i%2===0
-? 'rgba(255,255,255,.04)'
-: 'rgba(255,255,255,.07)';
+ctx.fillStyle=i%2===0
+?'rgba(255,255,255,.03)'
+:'rgba(255,255,255,.06)';
 
 ctx.fillRect(i*laneWidth,0,laneWidth-2,canvas.height);
 
 ctx.strokeStyle='rgba(0,255,255,.15)';
 ctx.strokeRect(i*laneWidth,0,laneWidth,canvas.height);
 
-if(!mobile){
-ctx.fillStyle='white';
-ctx.font='30px Arial';
-ctx.fillText(
-controls[i].toUpperCase(),
-i*laneWidth+laneWidth/2-10,
-canvas.height-40
-);
-}
-
 }
 
 ctx.fillStyle='rgba(0,255,255,.12)';
-ctx.fillRect(0,hitY()-60,canvas.width,120);
+ctx.fillRect(0,hitY-60,canvas.width,120);
 
 ctx.strokeStyle='#00fff7';
 ctx.lineWidth=4;
 ctx.beginPath();
-ctx.moveTo(0,hitY());
-ctx.lineTo(canvas.width,hitY());
+ctx.moveTo(0,hitY);
+ctx.lineTo(canvas.width,hitY);
 ctx.stroke();
-
 }
 
 function drawNotes(){
@@ -587,24 +491,24 @@ for(let n of notes){
 
 if(n.hit) continue;
 
-n.y += n.speed;
+n.y+=speed;
 
-const x = n.track*laneWidth + laneWidth/2;
+const x=n.track*laneWidth+laneWidth/2;
 
 ctx.beginPath();
 ctx.fillStyle=['#00fff7','#ff00ea','#00ff88','#ffe600'][n.track];
-ctx.shadowBlur=25;
+ctx.shadowBlur=30;
 ctx.shadowColor=ctx.fillStyle;
-ctx.arc(x,n.y,35,0,Math.PI*2);
+ctx.arc(x,n.y,36,0,Math.PI*2);
 ctx.fill();
 
-if(n.y > canvas.height+100){
+if(n.y>canvas.height+100){
 
 n.hit=true;
 combo=0;
 miss++;
 hp-=10;
-feedback('MISS','#ff3c3c');
+fx('MISS','#ff4444');
 updateUI();
 
 if(miss>=10){
@@ -616,41 +520,31 @@ endGame();
 }
 
 ctx.shadowBlur=0;
-
 }
 
 function drawParticles(){
-
 for(let i=particles.length-1;i>=0;i--){
-
-const p = particles[i];
-
-p.x += p.vx;
-p.y += p.vy;
+const p=particles[i];
+p.x+=p.vx;
+p.y+=p.vy;
 p.life--;
-
-ctx.globalAlpha = p.life / 30;
-ctx.fillStyle = p.color;
+ctx.globalAlpha=p.life/30;
+ctx.fillStyle=p.color;
 ctx.beginPath();
 ctx.arc(p.x,p.y,5,0,Math.PI*2);
 ctx.fill();
-ctx.globalAlpha = 1;
-
-if(p.life<=0){
-particles.splice(i,1);
+ctx.globalAlpha=1;
+if(p.life<=0) particles.splice(i,1);
 }
-
-}
-
 }
 
 function loop(){
 
-if(!gameRunning) return;
+if(!playing) return;
+
+updateSizes();
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
-
-laneWidth = canvas.width / tracks;
 
 drawTracks();
 drawNotes();
@@ -662,19 +556,18 @@ requestAnimationFrame(loop);
 
 updateUI();
 
-// FIX ЧЕРНОГО ЭКРАНА
-showScreen('menu');
+show('menu');
 
-document.getElementById('exitBtn').onclick = ()=>{
-
-gameRunning=false;
-
+document.getElementById('exit').onclick=()=>{
+playing=false;
+if(currentAudio){
+currentAudio.pause();
+currentAudio.currentTime = 0;
+}
 document.getElementById('ui').style.display='none';
-document.getElementById('exitBtn').style.display='none';
-
-showScreen('songs');
-
-};
+document.getElementById('exit').style.display='none';
+show('songs');
+}
 
 </script>
 
