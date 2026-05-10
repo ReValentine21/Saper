@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Blast Clone</title>
+    <title>Block Blast Clone Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -11,11 +11,13 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none; /* Запрет выделения текста */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body {
-            background-color: #3B549B; /* Темно-синий фон как на скриншоте */
+            background-color: #3B549B;
             font-family: 'Fredoka One', cursive, sans-serif;
             display: flex;
             justify-content: center;
@@ -30,49 +32,110 @@
             max-width: 500px;
             height: 100%;
             max-height: 900px;
+            position: relative;
+            background-color: #2F63C6; /* Цвет фона меню */
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             padding: 20px;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.3s ease;
         }
 
-        /* Шапка с очками */
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- ГЛАВНОЕ МЕНЮ --- */
+        #main-menu {
+            align-items: center;
+            justify-content: center;
+            background-color: #1A52B8;
+        }
+
+        .logo {
+            font-size: 50px;
+            text-align: center;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+        }
+        .logo span:nth-child(1) { color: #FFD700; }
+        .logo span:nth-child(2) { color: #FF4500; }
+        .logo span:nth-child(3) { color: #32CD32; }
+        .logo span:nth-child(4) { color: #00BFFF; }
+        .logo span:nth-child(5) { color: #9370DB; }
+        
+        .subtitle {
+            color: #87CEFA;
+            font-size: 14px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .daily-victory {
+            background: #E8F0FE;
+            color: #333;
+            border-radius: 10px;
+            padding: 15px;
+            width: 90%;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .daily-victory h3 { font-size: 16px; color: #555; margin-bottom: 10px; }
+        .daily-victory-content { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 24px; color: #2C3E50; }
+        
+        .btn {
+            width: 90%;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 22px;
+            border: none;
+            color: white;
+            margin-bottom: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn:active { transform: translateY(5px); box-shadow: none; }
+
+        .btn-yellow { background-color: #FFA500; text-shadow: 1px 1px 2px #CC8400; }
+        .btn-green { background-color: #2ECC71; text-shadow: 1px 1px 2px #27AE60; }
+        .btn-pink { background-color: #E035E0; text-shadow: 1px 1px 2px #A020A0; }
+        .btn-gray { background-color: #8A95A5; text-shadow: 1px 1px 2px #5B636D; }
+
+        /* --- ИГРОВОЙ ЭКРАН --- */
+        #game-screen {
+            background-color: #3B549B;
+        }
+
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            margin-top: 20px;
-        }
-
-        .score-container {
-            display: flex;
-            align-items: center;
-            color: #FFC107;
-            font-size: 24px;
-        }
-
-        .crown {
-            font-size: 28px;
-            margin-right: 5px;
-        }
-
-        .settings-btn {
-            background: none;
-            border: none;
-            color: #FFC107;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
-        .current-score {
-            font-size: 64px;
-            text-align: center;
             margin-bottom: 20px;
-            width: 100%;
         }
 
-        /* Игровое поле */
+        .score-container { color: #FFC107; font-size: 24px; display: flex; align-items: center; }
+        .crown { font-size: 28px; margin-right: 5px; }
+        .settings-btn { background: none; border: none; font-size: 30px; cursor: pointer; color: white; opacity: 0.8;}
+
+        .current-score { font-size: 64px; text-align: center; margin-bottom: 20px; width: 100%; }
+
         .board-container {
             background-color: #273970;
             border-radius: 10px;
@@ -86,16 +149,11 @@
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
             gap: 2px;
-            aspect-ratio: 1 / 1; /* Делает поле всегда квадратным */
+            aspect-ratio: 1 / 1;
         }
 
-        /* Стили для пустых ячеек и блоков */
-        .cell {
-            background-color: #1E2D58; /* Цвет пустой ячейки */
-            border-radius: 4px;
-        }
-
-        /* Класс для заполненного блока (голубой с 3D эффектом) */
+        .cell { background-color: #1E2D58; border-radius: 4px; }
+        
         .block-filled {
             background-color: #31B5FF;
             border-top: 3px solid #8BE0FF;
@@ -105,7 +163,6 @@
             border-radius: 4px;
         }
 
-        /* Контейнер для спавна фигур внизу */
         #spawn-area {
             display: flex;
             justify-content: space-around;
@@ -119,81 +176,192 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
-        /* Мини-сетка для отрисовки фигур внизу */
         .shape {
             display: grid;
             gap: 2px;
+            cursor: grab;
+            position: absolute;
+            transform: scale(1);
+            transition: transform 0.1s;
         }
+        .shape:active { cursor: grabbing; }
+        .shape.dragging { transform: scale(1.2); opacity: 0.9; z-index: 100; transition: none; }
         
-        .shape .cell {
-            width: 20px;
-            height: 20px;
-            background-color: transparent;
+        .shape .cell { width: 20px; height: 20px; background-color: transparent; }
+        .shape .block-filled { width: 20px; height: 20px; }
+
+        /* --- МОДАЛЬНОЕ ОКНО НАСТРОЕК --- */
+        #settings-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
 
-        .shape .block-filled {
-            width: 20px;
-            height: 20px;
+        .modal-content {
+            background-color: #4C68B8;
+            border-radius: 15px;
+            width: 90%;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 2px solid #5C7BD9;
+            position: relative;
         }
+
+        .modal-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .modal-header h2 { font-size: 28px; }
+        
+        .close-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: none;
+            border: none;
+            color: #A0B2E5;
+            font-size: 24px;
+            cursor: pointer;
+            font-family: Arial;
+        }
+
+        .settings-icons {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #5C7BD9;
+        }
+
+        .icon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            gap: 10px;
+        }
+        .icon-btn svg { width: 35px; height: 35px; fill: white; }
+        .icon-btn.disabled svg { fill: #FF4500; } /* Красный цвет для выключенного */
+
+        .modal-content .btn { width: 100%; font-size: 18px; padding: 15px; border-radius: 8px; margin-bottom: 10px;}
 
     </style>
 </head>
 <body>
 
 <div id="app">
-    <header>
-        <div class="score-container">
-            <span class="crown">👑</span>
-            <span>262665</span>
+
+    <div id="main-menu" class="screen">
+        <div class="logo">
+            <span>B</span><span>L</span><span>O</span><span>C</span><span>K</span><br>BLAST
         </div>
-        <button class="settings-btn">⚙️</button>
-    </header>
+        <div class="subtitle">ADVENTURE MASTER</div>
 
-    <div class="current-score">0</div>
+        <div class="daily-victory">
+            <h3>Consecutive Daily Victories</h3>
+            <div class="daily-victory-content">
+                <span style="font-size: 40px;">👑</span> × 1 <span style="color: #2ECC71;">✔️</span>
+            </div>
+        </div>
 
-    <div class="board-container">
-        <div id="board"></div>
+        <button class="btn btn-yellow">📍 Adventure</button>
+        <button class="btn btn-green" onclick="showScreen('game-screen')">♾️ Classic</button>
+        <button class="btn btn-pink">🎮 More Games</button>
     </div>
 
-    <div id="spawn-area">
-        <div class="spawn-slot" id="slot-1"></div>
-        <div class="spawn-slot" id="slot-2"></div>
-        <div class="spawn-slot" id="slot-3"></div>
+    <div id="game-screen" class="screen hidden">
+        <header>
+            <div class="score-container">
+                <span class="crown">👑</span><span>262665</span>
+            </div>
+            <button class="settings-btn" onclick="toggleSettings(true)">⚙️</button>
+        </header>
+
+        <div class="current-score">0</div>
+
+        <div class="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div id="spawn-area">
+            <div class="spawn-slot" id="slot-1"></div>
+            <div class="spawn-slot" id="slot-2"></div>
+            <div class="spawn-slot" id="slot-3"></div>
+        </div>
     </div>
+
+    <div id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" onclick="toggleSettings(false)">✖</button>
+            </div>
+            
+            <div class="settings-icons">
+                <div class="icon-btn">
+                    <span style="font-size: 30px;">🔊</span>
+                    <span>Sound</span>
+                </div>
+                <div class="icon-btn disabled">
+                    <span style="font-size: 30px; position: relative;">🎵<span style="position:absolute; left:0; color:red;">/</span></span>
+                    <span>BGM</span>
+                </div>
+                <div class="icon-btn">
+                    <span style="font-size: 30px;">📳</span>
+                    <span>Vibration</span>
+                </div>
+            </div>
+
+            <button class="btn btn-pink">🎮 More Games</button>
+            <button class="btn btn-green">⚙️ More Settings <span style="color: red; font-size: 10px;">🔴</span></button>
+            <button class="btn btn-green" onclick="goHome()">🏠 Home</button>
+            <button class="btn btn-green" onclick="toggleSettings(false)">↻ Replay</button>
+            <button class="btn btn-gray">👕 Default Skin</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // 1. Генерация сетки игрового поля 8x8
+    // --- НАВИГАЦИЯ ПО ЭКРАНАМ ---
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function toggleSettings(show) {
+        document.getElementById('settings-modal').style.display = show ? 'flex' : 'none';
+    }
+
+    function goHome() {
+        toggleSettings(false);
+        showScreen('main-menu');
+    }
+
+    // --- ГЕНЕРАЦИЯ ПОЛЯ ---
     const board = document.getElementById('board');
-    const boardSize = 8;
+    const exampleFilledCells = [0, 1, 2, 4, 6, 7, 8, 9, 10, 11, 14, 16, 17, 18, 21, 22, 23, 27, 28, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 42, 43, 44, 48, 50, 52, 53, 54, 57, 58, 59, 60];
 
-    // Для примера заполним несколько клеток, чтобы было похоже на скриншот 2
-    const exampleFilledCells = [
-        0, 1, 2, 4, 6, 7,
-        8, 9, 10, 11, 14,
-        16, 17, 18, 21, 22, 23,
-        27, 28, 30, 31,
-        32, 33, 34, 35, 36, 37, 38,
-        40, 42, 43, 44,
-        48, 50, 52, 53, 54,
-        57, 58, 59, 60
-    ];
-
-    for (let i = 0; i < boardSize * boardSize; i++) {
+    for (let i = 0; i < 64; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-        
-        // Добавляем класс block-filled, если индекс есть в нашем тестовом массиве
-        if (exampleFilledCells.includes(i)) {
-            cell.classList.add('block-filled');
-        }
-        
+        if (exampleFilledCells.includes(i)) cell.classList.add('block-filled');
         board.appendChild(cell);
     }
 
-    // 2. Функция для отрисовки фигур в нижних слотах
+    // --- СОЗДАНИЕ ФИГУР И ПЕРЕТАСКИВАНИЕ (DRAG & DROP) ---
     function drawShape(slotId, shapeMatrix) {
         const slot = document.getElementById(slotId);
         const shapeContainer = document.createElement('div');
@@ -201,47 +369,70 @@
         
         const rows = shapeMatrix.length;
         const cols = shapeMatrix[0].length;
-        
         shapeContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
         shapeContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const block = document.createElement('div');
-                if (shapeMatrix[r][c] === 1) {
-                    block.classList.add('block-filled');
-                } else {
-                    block.classList.add('cell'); // Прозрачная ячейка для структуры
-                }
+                block.classList.add(shapeMatrix[r][c] === 1 ? 'block-filled' : 'cell');
                 shapeContainer.appendChild(block);
             }
         }
         slot.appendChild(shapeContainer);
+        addDragLogic(shapeContainer, slot);
     }
 
-    // Фигуры как на скриншоте (1 - блок, 0 - пустота)
-    const shape1 = [
-        [1, 1, 0],
-        [0, 1, 0],
-        [0, 1, 0]
-    ];
+    // Логика перетаскивания для сенсорных экранов
+    function addDragLogic(element, slot) {
+        let isDragging = false;
+        let startX, startY;
 
-    const shape2 = [
-        [1]
-    ];
+        element.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            element.classList.add('dragging');
+            
+            // Центрируем фигуру под пальцем
+            const rect = element.getBoundingClientRect();
+            startX = e.touches[0].clientX - rect.left - (rect.width/2);
+            startY = e.touches[0].clientY - rect.top - (rect.height); // Чуть выше пальца, чтобы было видно
+            
+            // Отвязываем от слота, чтобы свободно двигать по экрану
+            element.style.position = 'fixed';
+            moveElement(e.touches[0].pageX, e.touches[0].pageY);
+            e.preventDefault(); 
+        }, {passive: false});
 
-    const shape3 = [
-        [0, 0, 1],
-        [0, 0, 1],
-        [1, 1, 1]
-    ];
+        element.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            moveElement(e.touches[0].pageX, e.touches[0].pageY);
+            e.preventDefault();
+        }, {passive: false});
 
-    // Отрисовываем фигуры
+        element.addEventListener('touchend', (e) => {
+            isDragging = false;
+            element.classList.remove('dragging');
+            
+            // Возвращаем фигуру обратно в слот (пока нет логики установки на доску)
+            element.style.position = 'absolute';
+            element.style.left = '0px';
+            element.style.top = '0px';
+        });
+
+        function moveElement(pageX, pageY) {
+            element.style.left = (pageX - startX - 40) + 'px'; // 40 - половина ширины слота
+            element.style.top = (pageY - startY - 40) + 'px';
+        }
+    }
+
+    const shape1 = [[1, 1, 0], [0, 1, 0], [0, 1, 0]];
+    const shape2 = [[1]];
+    const shape3 = [[0, 0, 1], [0, 0, 1], [1, 1, 1]];
+
     drawShape('slot-1', shape1);
     drawShape('slot-2', shape2);
     drawShape('slot-3', shape3);
 
 </script>
-
 </body>
 </html>
