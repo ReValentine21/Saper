@@ -14,6 +14,7 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
+            touch-action: none; /* Запрет скролла при перетаскивании */
         }
 
         body {
@@ -33,7 +34,7 @@
             height: 100%;
             max-height: 900px;
             position: relative;
-            background-color: #2F63C6; /* Цвет фона меню */
+            background-color: #2F63C6;
         }
 
         .screen {
@@ -55,93 +56,47 @@
         }
 
         /* --- ГЛАВНОЕ МЕНЮ --- */
-        #main-menu {
-            align-items: center;
-            justify-content: center;
-            background-color: #1A52B8;
-        }
-
-        .logo {
-            font-size: 50px;
-            text-align: center;
-            margin-bottom: 5px;
-            letter-spacing: 2px;
-            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-        }
+        #main-menu { align-items: center; justify-content: center; background-color: #1A52B8; }
+        .logo { font-size: 50px; text-align: center; margin-bottom: 5px; letter-spacing: 2px; text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; }
         .logo span:nth-child(1) { color: #FFD700; }
         .logo span:nth-child(2) { color: #FF4500; }
         .logo span:nth-child(3) { color: #32CD32; }
         .logo span:nth-child(4) { color: #00BFFF; }
         .logo span:nth-child(5) { color: #9370DB; }
         
-        .subtitle {
-            color: #87CEFA;
-            font-size: 14px;
-            margin-bottom: 40px;
-            letter-spacing: 1px;
-        }
+        .subtitle { color: #87CEFA; font-size: 14px; margin-bottom: 40px; letter-spacing: 1px; }
 
-        .daily-victory {
-            background: #E8F0FE;
-            color: #333;
-            border-radius: 10px;
-            padding: 15px;
-            width: 90%;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
+        .daily-victory { background: #E8F0FE; color: #333; border-radius: 10px; padding: 15px; width: 90%; text-align: center; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         .daily-victory h3 { font-size: 16px; color: #555; margin-bottom: 10px; }
         .daily-victory-content { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 24px; color: #2C3E50; }
         
         .btn {
-            width: 90%;
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 22px;
-            border: none;
-            color: white;
-            margin-bottom: 15px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            width: 90%; padding: 18px; border-radius: 12px; font-size: 22px; border: none; color: white;
+            margin-bottom: 15px; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.2); font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.1s;
         }
         .btn:active { transform: translateY(5px); box-shadow: none; }
-
         .btn-yellow { background-color: #FFA500; text-shadow: 1px 1px 2px #CC8400; }
         .btn-green { background-color: #2ECC71; text-shadow: 1px 1px 2px #27AE60; }
         .btn-pink { background-color: #E035E0; text-shadow: 1px 1px 2px #A020A0; }
         .btn-gray { background-color: #8A95A5; text-shadow: 1px 1px 2px #5B636D; }
 
         /* --- ИГРОВОЙ ЭКРАН --- */
-        #game-screen {
-            background-color: #3B549B;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
+        #game-screen { background-color: #3B549B; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .score-container { color: #FFC107; font-size: 24px; display: flex; align-items: center; }
         .crown { font-size: 28px; margin-right: 5px; }
         .settings-btn { background: none; border: none; font-size: 30px; cursor: pointer; color: white; opacity: 0.8;}
 
-        .current-score { font-size: 64px; text-align: center; margin-bottom: 20px; width: 100%; }
+        .current-score { font-size: 64px; text-align: center; margin-bottom: 10px; width: 100%; transition: transform 0.2s; }
+        .score-pop { transform: scale(1.2); color: #FFD700; }
 
         .board-container {
             background-color: #273970;
             border-radius: 10px;
             padding: 5px;
             box-shadow: inset 0px 4px 10px rgba(0,0,0,0.3);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         #board {
@@ -152,7 +107,7 @@
             aspect-ratio: 1 / 1;
         }
 
-        .cell { background-color: #1E2D58; border-radius: 4px; }
+        .cell { background-color: #1E2D58; border-radius: 4px; transition: background-color 0.2s; }
         
         .block-filled {
             background-color: #31B5FF;
@@ -163,98 +118,57 @@
             border-radius: 4px;
         }
 
-        #spawn-area {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex: 1;
+        /* АНИМАЦИЯ УДАЛЕНИЯ ЛИНИИ */
+        .block-highlight {
+            animation: clearFlash 0.3s ease-out forwards;
+        }
+        @keyframes clearFlash {
+            0% { background-color: #FFF; transform: scale(1.1); border-color: #FFF; z-index: 10; }
+            50% { background-color: #8BE0FF; transform: scale(1.2); }
+            100% { background-color: transparent; transform: scale(0); border-color: transparent; }
         }
 
-        .spawn-slot {
-            width: 80px;
-            height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+        /* АНИМАЦИЯ ПОСТАНОВКИ */
+        .block-place {
+            animation: placePop 0.2s ease-out;
         }
+        @keyframes placePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); filter: brightness(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        #spawn-area { display: flex; justify-content: space-around; align-items: center; flex: 1; }
+        .spawn-slot { width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; position: relative; }
 
         .shape {
             display: grid;
             gap: 2px;
             cursor: grab;
             position: absolute;
-            transform: scale(1);
+            transform: scale(0.8);
             transition: transform 0.1s;
+            z-index: 50;
         }
         .shape:active { cursor: grabbing; }
-        .shape.dragging { transform: scale(1.2); opacity: 0.9; z-index: 100; transition: none; }
+        .shape.dragging { transform: scale(1); opacity: 0.9; z-index: 100; transition: none; pointer-events: none; }
         
-        .shape .cell { width: 20px; height: 20px; background-color: transparent; }
-        .shape .block-filled { width: 20px; height: 20px; }
+        .shape .cell { background-color: transparent; }
+        /* Размер ячейки фигуры в спавне */
+        .shape > div { width: 22px; height: 22px; }
 
-        /* --- МОДАЛЬНОЕ ОКНО НАСТРОЕК --- */
-        #settings-modal {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+        /* --- МОДАЛЬНОЕ ОКНО --- */
+        #settings-modal, #game-over-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-
         .modal-content {
-            background-color: #4C68B8;
-            border-radius: 15px;
-            width: 90%;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            border: 2px solid #5C7BD9;
-            position: relative;
+            background-color: #4C68B8; border-radius: 15px; width: 90%; padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); border: 2px solid #5C7BD9; position: relative; text-align: center;
         }
-
-        .modal-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
+        .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; position: relative; }
         .modal-header h2 { font-size: 28px; }
-        
-        .close-btn {
-            position: absolute;
-            right: 0;
-            top: 0;
-            background: none;
-            border: none;
-            color: #A0B2E5;
-            font-size: 24px;
-            cursor: pointer;
-            font-family: Arial;
-        }
-
-        .settings-icons {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #5C7BD9;
-        }
-
-        .icon-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: white;
-            font-size: 12px;
-            gap: 10px;
-        }
-        .icon-btn svg { width: 35px; height: 35px; fill: white; }
-        .icon-btn.disabled svg { fill: #FF4500; } /* Красный цвет для выключенного */
-
+        .close-btn { position: absolute; right: 0; top: 0; background: none; border: none; color: #A0B2E5; font-size: 24px; cursor: pointer; font-family: Arial; }
         .modal-content .btn { width: 100%; font-size: 18px; padding: 15px; border-radius: 8px; margin-bottom: 10px;}
 
     </style>
@@ -262,110 +176,176 @@
 <body>
 
 <div id="app">
-
+    <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="main-menu" class="screen">
-        <div class="logo">
-            <span>B</span><span>L</span><span>O</span><span>C</span><span>K</span><br>BLAST
-        </div>
+        <div class="logo"><span>B</span><span>L</span><span>O</span><span>C</span><span>K</span><br>BLAST</div>
         <div class="subtitle">ADVENTURE MASTER</div>
-
         <div class="daily-victory">
             <h3>Consecutive Daily Victories</h3>
-            <div class="daily-victory-content">
-                <span style="font-size: 40px;">👑</span> × 1 <span style="color: #2ECC71;">✔️</span>
-            </div>
+            <div class="daily-victory-content"><span style="font-size: 40px;">👑</span> × 1 <span style="color: #2ECC71;">✔️</span></div>
         </div>
-
         <button class="btn btn-yellow">📍 Adventure</button>
-        <button class="btn btn-green" onclick="showScreen('game-screen')">♾️ Classic</button>
-        <button class="btn btn-pink">🎮 More Games</button>
+        <button class="btn btn-green" onclick="startGame()">♾️ Classic</button>
     </div>
 
+    <!-- ИГРОВОЙ ЭКРАН -->
     <div id="game-screen" class="screen hidden">
         <header>
-            <div class="score-container">
-                <span class="crown">👑</span><span>262665</span>
-            </div>
-            <button class="settings-btn" onclick="toggleSettings(true)">⚙️</button>
+            <div class="score-container"><span class="crown">👑</span><span id="best-score">0</span></div>
+            <button class="settings-btn" onclick="toggleModal('settings-modal', true)">⚙️</button>
         </header>
-
-        <div class="current-score">0</div>
-
-        <div class="board-container">
-            <div id="board"></div>
-        </div>
-
+        <div class="current-score" id="score-display">0</div>
+        <div class="board-container"><div id="board"></div></div>
         <div id="spawn-area">
+            <div class="spawn-slot" id="slot-0"></div>
             <div class="spawn-slot" id="slot-1"></div>
             <div class="spawn-slot" id="slot-2"></div>
-            <div class="spawn-slot" id="slot-3"></div>
         </div>
     </div>
 
+    <!-- НАСТРОЙКИ -->
     <div id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Settings</h2>
-                <button class="close-btn" onclick="toggleSettings(false)">✖</button>
+                <button class="close-btn" onclick="toggleModal('settings-modal', false)">✖</button>
             </div>
-            
-            <div class="settings-icons">
-                <div class="icon-btn">
-                    <span style="font-size: 30px;">🔊</span>
-                    <span>Sound</span>
-                </div>
-                <div class="icon-btn disabled">
-                    <span style="font-size: 30px; position: relative;">🎵<span style="position:absolute; left:0; color:red;">/</span></span>
-                    <span>BGM</span>
-                </div>
-                <div class="icon-btn">
-                    <span style="font-size: 30px;">📳</span>
-                    <span>Vibration</span>
-                </div>
-            </div>
-
-            <button class="btn btn-pink">🎮 More Games</button>
-            <button class="btn btn-green">⚙️ More Settings <span style="color: red; font-size: 10px;">🔴</span></button>
             <button class="btn btn-green" onclick="goHome()">🏠 Home</button>
-            <button class="btn btn-green" onclick="toggleSettings(false)">↻ Replay</button>
-            <button class="btn btn-gray">👕 Default Skin</button>
+            <button class="btn btn-green" onclick="restartGame()">↻ Replay</button>
         </div>
     </div>
 
+    <!-- КОНЕЦ ИГРЫ -->
+    <div id="game-over-modal">
+        <div class="modal-content">
+            <h2 style="font-size: 36px; color: #FF4500; margin-bottom: 10px;">GAME OVER</h2>
+            <p style="font-size: 20px; margin-bottom: 20px;">Score: <span id="final-score" style="color: #FFC107;">0</span></p>
+            <button class="btn btn-green" onclick="restartGame()">↻ Try Again</button>
+            <button class="btn btn-gray" onclick="goHome()">🏠 Menu</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- НАВИГАЦИЯ ПО ЭКРАНАМ ---
+    // --- ДАННЫЕ ИГРЫ ---
+    const BOARD_SIZE = 8;
+    let grid = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
+    let score = 0;
+    let bestScore = localStorage.getItem('blockBlastBest') || 0;
+    document.getElementById('best-score').innerText = bestScore;
+    
+    // Библиотека фигур (разные размеры для "умного" подбора)
+    const SHAPES = [
+        [[1]], // 1x1
+        [[1,1]], [[1],[1]], // 2x1, 1x2
+        [[1,1,1]], [[1],[1],[1]], // 3x1, 1x3
+        [[1,1,1,1]], [[1],[1],[1],[1]], // 4x1, 1x4
+        [[1,1,1,1,1]], [[1],[1],[1],[1],[1]], // 5x1, 1x5
+        [[1,1],[1,1]], // 2x2 квадрат
+        [[1,1,1],[1,1,1],[1,1,1]], // 3x3 квадрат
+        [[1,0],[1,1]], [[0,1],[1,1]], [[1,1],[1,0]], [[1,1],[0,1]], // Уголки 2x2
+        [[1,0,0],[1,0,0],[1,1,1]], [[0,0,1],[0,0,1],[1,1,1]], // Большие углы L
+        [[1,1,1],[1,0,0],[1,0,0]], [[1,1,1],[0,0,1],[0,0,1]]  // Большие углы Г
+    ];
+
+    let currentShapes = [null, null, null];
+    let isAnimating = false;
+
+    // --- НАВИГАЦИЯ ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
+    function toggleModal(id, show) {
+        document.getElementById(id).style.display = show ? 'flex' : 'none';
+    }
+    function goHome() { toggleModal('settings-modal', false); toggleModal('game-over-modal', false); showScreen('main-menu'); }
 
-    function toggleSettings(show) {
-        document.getElementById('settings-modal').style.display = show ? 'flex' : 'none';
+    // --- ИГРОВОЙ ЦИКЛ ---
+    function startGame() {
+        grid = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
+        score = 0;
+        updateScore(0);
+        renderBoard();
+        fillSpawnSlots();
+        showScreen('game-screen');
     }
 
-    function goHome() {
-        toggleSettings(false);
-        showScreen('main-menu');
+    function restartGame() {
+        toggleModal('settings-modal', false);
+        toggleModal('game-over-modal', false);
+        startGame();
     }
 
-    // --- ГЕНЕРАЦИЯ ПОЛЯ ---
-    const board = document.getElementById('board');
-    const exampleFilledCells = [0, 1, 2, 4, 6, 7, 8, 9, 10, 11, 14, 16, 17, 18, 21, 22, 23, 27, 28, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 42, 43, 44, 48, 50, 52, 53, 54, 57, 58, 59, 60];
-
-    for (let i = 0; i < 64; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        if (exampleFilledCells.includes(i)) cell.classList.add('block-filled');
-        board.appendChild(cell);
+    // Отрисовка поля
+    function renderBoard() {
+        const boardEl = document.getElementById('board');
+        boardEl.innerHTML = '';
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = grid[r][c] ? 'block-filled' : 'cell';
+                cell.id = `cell-${r}-${c}`;
+                boardEl.appendChild(cell);
+            }
+        }
     }
 
-    // --- СОЗДАНИЕ ФИГУР И ПЕРЕТАСКИВАНИЕ (DRAG & DROP) ---
-    function drawShape(slotId, shapeMatrix) {
+    function updateScore(points) {
+        score += points;
+        const scoreEl = document.getElementById('score-display');
+        scoreEl.innerText = score;
+        
+        if (points > 0) {
+            scoreEl.classList.add('score-pop');
+            setTimeout(() => scoreEl.classList.remove('score-pop'), 200);
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('blockBlastBest', bestScore);
+            document.getElementById('best-score').innerText = bestScore;
+        }
+    }
+
+    // --- ГЕНЕРАЦИЯ ФИГУР ---
+    function fillSpawnSlots() {
+        let placedAny = false;
+        // Гарантируем, что хотя бы одну фигуру можно будет поставить (внимательность!)
+        for (let i = 0; i < 3; i++) {
+            let shapeMat;
+            if (!placedAny) {
+                // Ищем фигуру, которая точно влезет
+                const shuffledShapes = [...SHAPES].sort(() => 0.5 - Math.random());
+                shapeMat = shuffledShapes.find(s => canPlaceAnywhere(s)) || SHAPES[0];
+                placedAny = true;
+            } else {
+                shapeMat = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+            }
+            currentShapes[i] = shapeMat;
+            drawShapeInSlot(`slot-${i}`, shapeMat, i);
+        }
+        checkGameOver();
+    }
+
+    function canPlaceAnywhere(shape) {
+        for (let r = 0; r <= BOARD_SIZE - shape.length; r++) {
+            for (let c = 0; c <= BOARD_SIZE - shape[0].length; c++) {
+                if (isValidPlacement(shape, r, c)) return true;
+            }
+        }
+        return false;
+    }
+
+    // --- ЛОГИКА ФИГУР ---
+    function drawShapeInSlot(slotId, shapeMatrix, index) {
         const slot = document.getElementById(slotId);
+        slot.innerHTML = '';
+        if (!shapeMatrix) return;
+
         const shapeContainer = document.createElement('div');
         shapeContainer.classList.add('shape');
+        shapeContainer.dataset.index = index;
         
         const rows = shapeMatrix.length;
         const cols = shapeMatrix[0].length;
@@ -375,63 +355,191 @@
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const block = document.createElement('div');
-                block.classList.add(shapeMatrix[r][c] === 1 ? 'block-filled' : 'cell');
+                block.className = shapeMatrix[r][c] ? 'block-filled' : 'cell';
                 shapeContainer.appendChild(block);
             }
         }
         slot.appendChild(shapeContainer);
-        addDragLogic(shapeContainer, slot);
+        addDragLogic(shapeContainer, shapeMatrix, slot);
     }
 
-    // Логика перетаскивания для сенсорных экранов
-    function addDragLogic(element, slot) {
+    // --- УПРАВЛЕНИЕ (DRAG & DROP) ---
+    function addDragLogic(element, matrix, slot) {
         let isDragging = false;
         let startX, startY;
+        let originalRect;
 
-        element.addEventListener('touchstart', (e) => {
+        element.addEventListener('pointerdown', (e) => {
+            if (isAnimating) return;
             isDragging = true;
+            originalRect = element.getBoundingClientRect();
+            
             element.classList.add('dragging');
-            
-            // Центрируем фигуру под пальцем
-            const rect = element.getBoundingClientRect();
-            startX = e.touches[0].clientX - rect.left - (rect.width/2);
-            startY = e.touches[0].clientY - rect.top - (rect.height); // Чуть выше пальца, чтобы было видно
-            
-            // Отвязываем от слота, чтобы свободно двигать по экрану
             element.style.position = 'fixed';
-            moveElement(e.touches[0].pageX, e.touches[0].pageY);
-            e.preventDefault(); 
-        }, {passive: false});
-
-        element.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            moveElement(e.touches[0].pageX, e.touches[0].pageY);
-            e.preventDefault();
-        }, {passive: false});
-
-        element.addEventListener('touchend', (e) => {
-            isDragging = false;
-            element.classList.remove('dragging');
+            document.body.appendChild(element); // Выносим в body, чтобы не перекрывалось overflow
             
-            // Возвращаем фигуру обратно в слот (пока нет логики установки на доску)
-            element.style.position = 'absolute';
-            element.style.left = '0px';
-            element.style.top = '0px';
+            moveElement(e.clientX, e.clientY);
+            
+            // Глобальные слушатели, чтобы не потерять фигуру при быстром движении
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
         });
 
-        function moveElement(pageX, pageY) {
-            element.style.left = (pageX - startX - 40) + 'px'; // 40 - половина ширины слота
-            element.style.top = (pageY - startY - 40) + 'px';
+        function onMove(e) {
+            if (!isDragging) return;
+            moveElement(e.clientX, e.clientY);
+        }
+
+        function onUp(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            
+            element.classList.remove('dragging');
+            
+            // Проверяем позицию над доской
+            const boardEl = document.getElementById('board');
+            const boardRect = boardEl.getBoundingClientRect();
+            const shapeRect = element.getBoundingClientRect();
+            
+            // Размер одной клетки на реальном экране
+            const cellSize = boardRect.width / 8;
+            
+            // Вычисляем координату (относительно доски)
+            const offsetX = shapeRect.left - boardRect.left;
+            const offsetY = shapeRect.top - boardRect.top;
+            
+            const col = Math.round(offsetX / cellSize);
+            const row = Math.round(offsetY / cellSize);
+
+            if (isValidPlacement(matrix, row, col)) {
+                placeShape(matrix, row, col);
+                element.remove();
+                currentShapes[slot.id.split('-')[1]] = null;
+                
+                if (currentShapes.every(s => s === null)) {
+                    fillSpawnSlots();
+                } else {
+                    checkGameOver();
+                }
+            } else {
+                // Возврат в слот
+                element.style.position = 'absolute';
+                element.style.left = '0';
+                element.style.top = '0';
+                slot.appendChild(element);
+            }
+        }
+
+        function moveElement(clientX, clientY) {
+            // Поднимаем фигуру чуть выше пальца/курсора
+            element.style.left = (clientX - (element.offsetWidth / 2)) + 'px';
+            element.style.top = (clientY - element.offsetHeight - 20) + 'px'; 
         }
     }
 
-    const shape1 = [[1, 1, 0], [0, 1, 0], [0, 1, 0]];
-    const shape2 = [[1]];
-    const shape3 = [[0, 0, 1], [0, 0, 1], [1, 1, 1]];
+    // --- ИГРОВЫЕ МЕХАНИКИ ---
+    function isValidPlacement(matrix, startRow, startCol) {
+        for (let r = 0; r < matrix.length; r++) {
+            for (let c = 0; c < matrix[0].length; c++) {
+                if (matrix[r][c]) {
+                    const targetRow = startRow + r;
+                    const targetCol = startCol + c;
+                    // Проверка выхода за границы
+                    if (targetRow < 0 || targetRow >= BOARD_SIZE || targetCol < 0 || targetCol >= BOARD_SIZE) return false;
+                    // Проверка занятости клетки
+                    if (grid[targetRow][targetCol]) return false;
+                }
+            }
+        }
+        return true;
+    }
 
-    drawShape('slot-1', shape1);
-    drawShape('slot-2', shape2);
-    drawShape('slot-3', shape3);
+    function placeShape(matrix, startRow, startCol) {
+        let blocksPlaced = 0;
+        for (let r = 0; r < matrix.length; r++) {
+            for (let c = 0; c < matrix[0].length; c++) {
+                if (matrix[r][c]) {
+                    grid[startRow + r][startCol + c] = 1;
+                    blocksPlaced++;
+                    // Анимация постановки
+                    const cellEl = document.getElementById(`cell-${startRow + r}-${startCol + c}`);
+                    cellEl.className = 'block-filled block-place';
+                }
+            }
+        }
+        updateScore(blocksPlaced);
+        checkLines();
+    }
+
+    function checkLines() {
+        let linesToClear = { rows: [], cols: [] };
+
+        // Проверка строк
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            if (grid[r].every(val => val === 1)) linesToClear.rows.push(r);
+        }
+        // Проверка колонок
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            let colFull = true;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                if (grid[r][c] === 0) colFull = false;
+            }
+            if (colFull) linesToClear.cols.push(c);
+        }
+
+        const totalLines = linesToClear.rows.length + linesToClear.cols.length;
+        if (totalLines > 0) {
+            isAnimating = true;
+            
+            // Начисление комбо-очков
+            const baseLineScore = 100;
+            let linePoints = 0;
+            for(let i=1; i<=totalLines; i++) { linePoints += baseLineScore * i; }
+            updateScore(linePoints);
+
+            // Анимация вспышки
+            linesToClear.rows.forEach(r => {
+                for (let c = 0; c < BOARD_SIZE; c++) document.getElementById(`cell-${r}-${c}
+').classList.add('block-highlight');
+            });
+            linesToClear.cols.forEach(c => {
+                for (let r = 0; r < BOARD_SIZE; r++) document.getElementById(`cell-${r}-${c}`).classList.add('block-highlight');
+            });
+
+            // Удаление после анимации
+            setTimeout(() => {
+                linesToClear.rows.forEach(r => { for (let c = 0; c < BOARD_SIZE; c++) grid[r][c] = 0; });
+                linesToClear.cols.forEach(c => { for (let r = 0; r < BOARD_SIZE; r++) grid[r][c] = 0; });
+                renderBoard();
+                isAnimating = false;
+                checkGameOver(); // Проверяем еще раз после очистки места
+            }, 300);
+        }
+    }
+
+    function checkGameOver() {
+        if (isAnimating) return;
+        let canPlay = false;
+        
+        for (let shape of currentShapes) {
+            if (shape && canPlaceAnywhere(shape)) {
+                canPlay = true;
+                break;
+            }
+        }
+
+        // Если есть пустые слоты, игра продолжается
+        if (currentShapes.some(s => s === null) && currentShapes.some(s => s !== null)) {
+            if (canPlay) return; 
+        }
+
+        if (!canPlay && !currentShapes.every(s => s === null)) {
+            document.getElementById('final-score').innerText = score;
+            toggleModal('game-over-modal', true);
+        }
+    }
 
 </script>
 </body>
