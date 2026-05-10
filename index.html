@@ -1,621 +1,400 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neon Rhythm X</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Rhythm X</title>
 
-<style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
--webkit-tap-highlight-color:transparent;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-body{
-background:
-radial-gradient(circle at top,#0f1720,#020202 70%);
-}
+        body {
+            background: radial-gradient(circle at top, #0f1720, #020202 70%);
+            overflow: hidden;
+        }
 
-#app{
-position:relative;
-width:100vw;
-height:100vh;
-background:
-radial-gradient(circle at top,#111,#000 60%);
-overflow:hidden;
-}
+        #app {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at top, #111, #000 60%);
+            overflow: hidden;
+        }
 
-canvas{
-position:absolute;
-inset:0;
-width:100%;
-height:100%;
-}
+        canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
 
-.screen{
-position:absolute;
-inset:0;
-display:none;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-z-index:20;
-background:rgba(0,0,0,.82);
-backdrop-filter:blur(12px);
-padding:20px;
-}
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 20;
+            background: rgba(0, 0, 0, .85);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+        }
 
-.screen.active{
-display:flex;
-}
+        .screen.active {
+            display: flex;
+        }
 
-.title{
-font-size:4rem;
-font-weight:900;
-margin-bottom:30px;
-color:#00fff7;
-text-shadow:
-0 0 10px #00fff7,
-0 0 30px #00fff7;
-}
+        .title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 40px;
+            color: #ffffff; /* Сделали заголовок белым */
+            text-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
+            text-align: center;
+        }
 
+        .btn {
+            width: min(350px, 85vw);
+            padding: 18px;
+            margin: 10px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff; /* Шрифт кнопок белый */
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
 
-.btn{
-width:min(420px,90vw);
-padding:20px;
-margin:12px;
-border:none;
-border-radius:22px;
-background:
-linear-gradient(
-180deg,
-rgba(0,255,255,.15),
-rgba(0,255,255,.05)
-);
-color:white;
-font-size:1.2rem;
-font-weight:900;
-letter-spacing:1px;
-border:1px solid rgba(0,255,255,.35);
-box-shadow:
-0 0 25px rgba(0,255,255,.2),
-inset 0 0 15px rgba(255,255,255,.08);
-}
+        .btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-.song{
-width:min(500px,95vw);
-padding:18px;
-margin:10px;
-border-radius:24px;
-background:rgba(255,255,255,.05);
-border:1px solid rgba(255,255,255,.08);
-box-shadow:0 0 20px rgba(0,0,0,.4);
-}
+        .song {
+            width: min(450px, 90vw);
+            padding: 20px;
+            margin: 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-.song h2{
-color:white;
-font-size:2rem;
-}
+        .song h2 {
+            color: #ffffff; /* Названия песен белые */
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
 
-.song p{
-color:#b8b8b8;
-}
+        .song p {
+            color: #dddddd; /* Описание песен светло-серое/белое */
+            font-size: 0.9rem;
+        }
 
-#ui{
-position:absolute;
-top:15px;
-left:15px;
-right:15px;
-display:none;
-justify-content:space-between;
-z-index:10;
-}
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            right: 15px;
+            display: none;
+            justify-content: space-between;
+            z-index: 10;
+        }
 
-.box{
-background:rgba(0,0,0,.45);
-padding:12px 18px;
-border-radius:18px;
-backdrop-filter:blur(10px);
-border:1px solid rgba(255,255,255,.08);
-font-weight:bold;
-}
+        .box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
 
-#feedback{
-position:absolute;
-top:42%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:4rem;
-font-weight:900;
-opacity:0;
-transition:.15s;
-pointer-events:none;
-z-index:11;
-}
+        #feedback {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5rem;
+            font-weight: 900;
+            opacity: 0;
+            z-index: 11;
+            pointer-events: none;
+        }
 
-#countdown{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:8rem;
-font-weight:900;
-color:white;
-text-shadow:0 0 20px white;
-display:none;
-z-index:11;
-}
+        #hpWrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: #222;
+            z-index: 12;
+        }
 
-#hpWrap{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:7px;
-background:#111;
-z-index:12;
-}
+        #hp {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00fff7);
+            transition: 0.3s;
+        }
 
-#hp{
-width:100%;
-height:100%;
-background:linear-gradient(90deg,#00ff88,#00fff7);
-}
+        #exit {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: rgba(255, 50, 50, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 25;
+            display: none;
+            font-weight: bold;
+        }
 
-#exit{
-position:absolute;
-bottom:20px;
-right:20px;
-padding:14px 20px;
-border:none;
-border-radius:18px;
-background:rgba(255,0,0,.2);
-color:white;
-z-index:20;
-display:none;
-}
+        .settings-content {
+            color: white;
+            text-align: left;
+            width: min(350px, 80vw);
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
 
-@media(max-width:700px){
-.title{font-size:2.5rem;}
-#feedback{font-size:3rem;}
-#countdown{font-size:5rem;}
-}
-</style>
+        label {
+            display: block;
+            margin: 15px 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        @media(max-width: 600px) {
+            .title { font-size: 2.2rem; }
+            .btn { padding: 15px; font-size: 1rem; }
+        }
+    </style>
 </head>
 <body>
 
 <div id="app">
+    <canvas id="game"></canvas>
+    <div id="hpWrap"><div id="hp"></div></div>
 
-<canvas id="game"></canvas>
+    <div id="ui">
+        <div class="box">Score: <span id="score">0</span></div>
+        <div class="box">Combo: <span id="combo">0</span></div>
+        <div class="box">Miss: <span id="miss">0</span>/10</div>
+    </div>
 
-<div id="hpWrap"><div id="hp"></div></div>
+    <div id="feedback"></div>
+    <button id="exit">ВЫЙТИ</button>
 
-<div id="ui">
-<div class="box">Score: <span id="score">0</span></div>
-<div class="box">Combo: <span id="combo">0</span></div>
-<div class="box">Miss: <span id="miss">0</span>/10</div>
+    <div class="screen active" id="menu">
+        <div class="title">NEON RHYTHM X</div>
+        <button class="btn" onclick="show('songs')">ИГРАТЬ</button>
+        <button class="btn" onclick="show('settings')">НАСТРОЙКИ</button>
+    </div>
+
+    <div class="screen" id="songs">
+        <div class="title">ВЫБОР ПЕСНИ</div>
+        
+        <div class="song" onclick="startGame(4, 40, 'songs/fur-elise.mp3')">
+            <h2>Fur Elise</h2>
+            <p>Сложность: Очень легко</p>
+        </div>
+        <div class="song" onclick="startGame(6, 70, 'songs/river.mp3')">
+            <h2>River Flows In You</h2>
+            <p>Сложность: Легко</p>
+        </div>
+        <div class="song" onclick="startGame(8, 120, 'songs/interstellar.mp3')">
+            <h2>Interstellar</h2>
+            <p>Сложность: Средне</p>
+        </div>
+        <div class="song" onclick="startGame(10, 200, 'songs/rush-e.mp3')">
+            <h2>Rush E</h2>
+            <p>Сложность: Сложно</p>
+        </div>
+
+        <button class="btn" style="margin-top:20px" onclick="show('menu')">НАЗАД</button>
+    </div>
+
+    <div class="screen" id="settings">
+        <div class="title">НАСТРОЙКИ</div>
+        <div class="settings-content">
+            <label><input type="checkbox" id="effects" checked> Эффекты</label>
+            <label><input type="checkbox" id="spam"> Spam Mode</label>
+        </div>
+        <button class="btn" onclick="show('menu')">НАЗАД</button>
+    </div>
+
+    <div class="screen" id="gameover">
+        <div class="title">КОНЕЦ ИГРЫ</div>
+        <h2 id="final" style="color:white; margin-bottom:30px;">Счёт: 0</h2>
+        <button class="btn" onclick="show('songs')">ИГРАТЬ СНОВА</button>
+        <button class="btn" onclick="show('menu')">В МЕНЮ</button>
+    </div>
 </div>
-
-<div id="feedback"></div>
-<div id="countdown"></div>
-<button id="exit">ВЫЙТИ</button>
-
-<div class="screen active" id="menu">
-<div class="title">NEON RHYTHM X</div>
-<button class="btn" onclick="openSongs()">ИГРАТЬ</button>
-</div>
-
-<button class="btn" onclick="openSettings()">
-НАСТРОЙКИ
-</button>
-
-<div class="screen" id="songs">
-<div class="title">SONGS</div>
-
-<div class="song" onclick="startGame(4,40,'songs/fur-elise.mp3')">
-<h2>Fur Elise</h2>
-<p>Очень легко</p>
-</div>
-
-<div class="song" onclick="startGame(6,70,'songs/river.mp3')">
-<h2>River Flows In You</h2>
-<p>Легко</p>
-</div>
-
-<div class="song" onclick="startGame(8,120,'songs/interstellar.mp3')">
-<h2>Interstellar</h2>
-<p>Средне</p>
-</div>
-
-<div class="song" onclick="startGame(10,200,'songs/rush-e.mp3')">
-<h2>Rush E</h2>
-<p>Сложно</p>
-</div>
-
-<button class="btn" onclick="show('menu')">НАЗАД</button>
-</div>
-
-<div class="screen" id="settings">
-
-<div class="title">
-SETTINGS
-</div>
-
-<div class="song">
-
-<label>
-<input type="checkbox" id="effects" checked>
-Эффекты
-</label>
-
-<br><br>
-
-<label>
-<input type="checkbox" id="spam">
-Spam Mode
-</label>
-
-</div>
-
-<button class="btn" onclick="show('menu')">
-НАЗАД
-</button>
-
-</div>
-
-function openSettings(){
-show('settings');
-}
-
-<div class="screen" id="gameover">
-<div class="title">GAME OVER</div>
-<h2 id="final"></h2>
-<button class="btn" onclick="openSongs()">СНОВА</button>
-<button class="btn" onclick="show('menu')">МЕНЮ</button>
-</div>
-
-</div>
-
-<!--
-ДОБАВЬ MP3 ФАЙЛЫ В ПАПКУ /songs/
-
-songs/fur-elise.mp3
-songs/river.mp3
-songs/interstellar.mp3
-songs/experience.mp3
-songs/rush-e.mp3
-
--->
 
 <script>
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-
-function resize(){
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-}
-resize();
-addEventListener('resize',resize);
-
 const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-const lanes = 4;
+let laneWidth, hitY, notes = [], particles = [], score = 0, combo = 0, miss = 0, hp = 100;
+let speed = 6, currentAudio = null, playing = false;
 
-let laneWidth;
-let hitY;
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    laneWidth = canvas.width / 4;
+    hitY = canvas.height - 180;
+}
+window.addEventListener('resize', resize);
+resize();
 
-let notes=[];
-let particles=[];
-
-let score=0;
-let combo=0;
-let miss=0;
-let hp=100;
-
-let speed=6;
-let currentAudio = null;
-let playing=false;
-if(currentAudio){
-currentAudio.pause();
-currentAudio.currentTime = 0;
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    if (id) document.getElementById(id).classList.add('active');
 }
 
-function updateSizes(){
-laneWidth = canvas.width/lanes;
-hitY = canvas.height-180;
+function startGame(gameSpeed, count, song) {
+    speed = gameSpeed;
+    notes = [];
+    particles = [];
+    score = 0;
+    combo = 0;
+    miss = 0;
+    hp = 100;
+    updateUI();
+    
+    for (let i = 0; i < count; i++) {
+        notes.push({ track: Math.floor(Math.random() * 4), y: -i * 220, hit: false });
+    }
+
+    show(null);
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    currentAudio = new Audio(song);
+    
+    playing = true;
+    document.getElementById('ui').style.display = 'flex';
+    document.getElementById('exit').style.display = 'block';
+    currentAudio.play().catch(() => console.log("Нужен клик для звука"));
+    requestAnimationFrame(loop);
 }
 
-updateSizes();
-
-function show(id){
-document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-if(id) document.getElementById(id).classList.add('active');
+function endGame() {
+    playing = false;
+    if (currentAudio) { currentAudio.pause(); }
+    document.getElementById('ui').style.display = 'none';
+    document.getElementById('exit').style.display = 'none';
+    document.getElementById('final').innerText = 'Счёт: ' + score;
+    show('gameover');
 }
 
-function openSongs(){
-show('songs');
+function fx(text, color) {
+    const f = document.getElementById('feedback');
+    f.innerText = text;
+    f.style.color = color;
+    f.style.opacity = 1;
+    f.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    setTimeout(() => { f.style.opacity = 0; f.style.transform = 'translate(-50%, -50%) scale(1)'; }, 150);
 }
 
-function startGame(gameSpeed,count,song=''){
-
-speed=gameSpeed;
-notes=[];
-particles=[];
-
-score=0;
-combo=0;
-miss=0;
-hp=100;
-
-for(let i=0;i<count;i++){
-notes.push({
-track:Math.floor(Math.random()*4),
-y:-i*220,
-hit:false
-});
+function updateUI() {
+    document.getElementById('score').innerText = score;
+    document.getElementById('combo').innerText = combo;
+    document.getElementById('miss').innerText = miss;
+    document.getElementById('hp').style.width = hp + '%';
 }
 
-show();
-
-if(currentAudio){
-currentAudio.pause();
-currentAudio = null;
+function hit(track) {
+    if (!playing) return;
+    let success = false;
+    for (let n of notes) {
+        if (n.hit || n.track !== track) continue;
+        const dist = Math.abs(n.y - hitY);
+        if (dist < 90) {
+            n.hit = true;
+            success = true;
+            combo++;
+            score += 100 * combo;
+            fx(dist < 40 ? 'PERFECT' : 'GOOD', dist < 40 ? '#00ff88' : '#ffe600');
+            break;
+        }
+    }
+    if (!success) {
+        combo = 0; miss++; hp -= 10;
+        fx('MISS', '#ff4444');
+    }
+    updateUI();
+    if (miss >= 10 || hp <= 0) endGame();
 }
 
-currentAudio = new Audio(song);
-currentAudio.volume = 0.8;
-
-const c = document.getElementById('countdown');
-c.style.display='block';
-
-let n=3;
-c.innerText=n;
-
-const interval=setInterval(()=>{
-
-n--;
-
-if(n>0) c.innerText=n;
-else if(n===0) c.innerText='START!';
-else{
-clearInterval(interval);
-c.style.display='none';
-realStart();
-currentAudio.play();
-}
-
-},1000);
-
-}
-
-function realStart(){
-playing=true;
-document.getElementById('ui').style.display='flex';
-document.getElementById('exit').style.display='block';
-requestAnimationFrame(loop);
-}
-
-function endGame(){
-playing=false;
-if(currentAudio){
-currentAudio.pause();
-currentAudio.currentTime = 0;
-}
-document.getElementById('ui').style.display='none';
-document.getElementById('exit').style.display='none';
-document.getElementById('final').innerText='Счёт: '+score;
-show('gameover');
-}
-
-function fx(text,color){
-const f=document.getElementById('feedback');
-f.innerText=text;
-f.style.color=color;
-f.style.opacity=1;
-f.style.transform='translate(-50%,-50%) scale(1.3)';
-setTimeout(()=>{
-f.style.opacity=0;
-f.style.transform='translate(-50%,-50%) scale(1)';
-},150);
-}
-
-function spawn(x,y,color){
-for(let i=0;i<12;i++){
-particles.push({
-x,y,
-vx:(Math.random()-.5)*8,
-vy:(Math.random()-.5)*8,
-life:30,
-color
-});
-}
-}
-
-function hit(track){
-if(!playing) return;
-
-let success=false;
-
-for(let n of notes){
-
-if(n.hit) continue;
-if(n.track!==track) continue;
-
-const dist=Math.abs(n.y-hitY);
-
-if(dist<90){
-
-n.hit=true;
-success=true;
-combo++;
-score+=100*combo;
-
-if(dist<35){
-fx('PERFECT','#00ff88');
-}else{
-fx('GOOD','#ffe600');
-}
-
-spawn(track*laneWidth+laneWidth/2,hitY,'#00fff7');
-
-break;
-
-}
-
-}
-
-if(!success){
-combo=0;
-miss++;
-hp-=10;
-fx('MISS','#ff4444');
-}
-
-if(miss>=10||hp<=0){
-endGame();
-}
-
-updateUI();
-}
-
-addEventListener('keydown',e=>{
-const keys=['d','f','j','k'];
-const idx=keys.indexOf(e.key.toLowerCase());
-if(idx!==-1) hit(idx);
+// Управление
+window.addEventListener('keydown', e => {
+    const keys = ['d', 'f', 'j', 'k'];
+    const idx = keys.indexOf(e.key.toLowerCase());
+    if (idx !== -1) hit(idx);
 });
 
-canvas.addEventListener('touchstart',e=>{
-if(!mobile) return;
-const rect=canvas.getBoundingClientRect();
-for(let t of e.touches){
-const x=t.clientX-rect.left;
-const lane=Math.floor(x/(rect.width/4));
-hit(lane);
-}
-});
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    for (let t of e.touches) {
+        const x = t.clientX - rect.left;
+        hit(Math.floor(x / (rect.width / 4)));
+    }
+}, {passive: false});
 
-function updateUI(){
-document.getElementById('score').innerText=score;
-document.getElementById('combo').innerText=combo;
-document.getElementById('miss').innerText=miss;
-document.getElementById('hp').style.width=hp+'%';
-}
+function loop() {
+    if (!playing) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Отрисовка дорожек
+    for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)';
+        ctx.fillRect(i * laneWidth, 0, laneWidth, canvas.height);
+    }
 
-function drawTracks(){
+    // Линия нажатия
+    ctx.strokeStyle = '#00fff7';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, hitY); ctx.lineTo(canvas.width, hitY); ctx.stroke();
 
-for(let i=0;i<4;i++){
+    // Ноты
+    for (let n of notes) {
+        if (n.hit) continue;
+        n.y += speed;
+        ctx.beginPath();
+        ctx.fillStyle = ['#00fff7', '#ff00ea', '#00ff88', '#ffe600'][n.track];
+        ctx.arc(n.track * laneWidth + laneWidth / 2, n.y, 35, 0, Math.PI * 2);
+        ctx.fill();
 
-ctx.fillStyle=i%2===0
-?'rgba(255,255,255,.03)'
-:'rgba(255,255,255,.06)';
-
-ctx.fillRect(i*laneWidth,0,laneWidth-2,canvas.height);
-
-ctx.strokeStyle='rgba(0,255,255,.15)';
-ctx.strokeRect(i*laneWidth,0,laneWidth,canvas.height);
-
-}
-
-ctx.fillStyle='rgba(0,255,255,.12)';
-ctx.fillRect(0,hitY-60,canvas.width,120);
-
-ctx.strokeStyle='#00fff7';
-ctx.lineWidth=4;
-ctx.beginPath();
-ctx.moveTo(0,hitY);
-ctx.lineTo(canvas.width,hitY);
-ctx.stroke();
-}
-
-function drawNotes(){
-
-for(let n of notes){
-
-if(n.hit) continue;
-
-n.y+=speed;
-
-const x=n.track*laneWidth+laneWidth/2;
-
-ctx.beginPath();
-ctx.fillStyle=['#00fff7','#ff00ea','#00ff88','#ffe600'][n.track];
-ctx.shadowBlur=30;
-ctx.shadowColor=ctx.fillStyle;
-ctx.arc(x,n.y,36,0,Math.PI*2);
-ctx.fill();
-
-if(n.y>canvas.height+100){
-
-n.hit=true;
-combo=0;
-miss++;
-hp-=10;
-fx('MISS','#ff4444');
-updateUI();
-
-if(miss>=10){
-endGame();
+        if (n.y > canvas.height + 50) {
+            n.hit = true; combo = 0; miss++; hp -= 10;
+            fx('MISS', '#ff4444'); updateUI();
+            if (miss >= 10 || hp <= 0) endGame();
+        }
+    }
+    requestAnimationFrame(loop);
 }
 
-}
-
-}
-
-ctx.shadowBlur=0;
-}
-
-function drawParticles(){
-for(let i=particles.length-1;i>=0;i--){
-const p=particles[i];
-p.x+=p.vx;
-p.y+=p.vy;
-p.life--;
-ctx.globalAlpha=p.life/30;
-ctx.fillStyle=p.color;
-ctx.beginPath();
-ctx.arc(p.x,p.y,5,0,Math.PI*2);
-ctx.fill();
-ctx.globalAlpha=1;
-if(p.life<=0) particles.splice(i,1);
-}
-}
-
-function loop(){
-
-if(!playing) return;
-
-updateSizes();
-
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-drawTracks();
-drawNotes();
-drawParticles();
-
-requestAnimationFrame(loop);
-
-}
-
-updateUI();
-
-show('menu');
-
-document.getElementById('exit').onclick=()=>{
-playing=false;
-if(currentAudio){
-currentAudio.pause();
-currentAudio.currentTime = 0;
-}
-document.getElementById('ui').style.display='none';
-document.getElementById('exit').style.display='none';
-show('songs');
-}
-
+document.getElementById('exit').onclick = () => endGame();
 </script>
 
 </body>
