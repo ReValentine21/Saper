@@ -2,513 +2,777 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ЖЕСТКАЯ ФИКСАЦИЯ ДЛЯ МОБИЛОК: запрет зума -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebOS 11 Pro</title>
+    <title>WeLLOS 2</title>
     <style>
         /* ==========================================
-           БАЗОВЫЕ НАСТРОЙКИ СИСТЕМЫ И АНИМАЦИИ
+           LIQUID GLASS & БАЗОВЫЕ НАСТРОЙКИ
         ========================================== */
         :root {
             --accent: #4cc2ff;
-            --bg-dark: #202020;
-            --bg-darker: #191919;
-            --bg-panel: rgba(32, 32, 32, 0.85);
+            --glass-bg: rgba(30, 30, 30, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(25px);
             --text-main: #ffffff;
-            --window-radius: 8px;
+            
+            /* Настройки панели задач (изменяемые) */
+            --tb-height: 50px;
+            --tb-icon-size: 40px;
+            --tb-gap: 8px;
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
 
         body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh;
-            overflow: hidden; background-color: #1a1a2e;
-            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
+            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+            background-color: #0f0f1a;
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564');
             background-size: cover; background-position: center;
-            user-select: none; color: var(--text-main);
-            transition: background-image 0.5s ease;
+            color: var(--text-main); transition: background-image 0.5s ease;
         }
 
         input, textarea { user-select: text; }
 
-        /* ==========================================
-           ЭКРАН ПРЕДУПРЕЖДЕНИЯ (ПОРТРЕТНЫЙ РЕЖИМ)
-        ========================================== */
-        #orientation-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; color: white; z-index: 9999999;
-            align-items: center; justify-content: center; flex-direction: column;
-            text-align: center; padding: 20px;
-        }
-        #orientation-warning .icon { font-size: 60px; margin-bottom: 20px; animation: spin 2s infinite ease-in-out; }
-        
-        @keyframes spin { 
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(90deg); }
-        }
-
-        @media (orientation: portrait) {
-            #orientation-warning { display: flex; }
-            #desktop, #taskbar, #start-menu, #windows-container { display: none !important; }
-        }
+        /* Скроллбары */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
 
         /* ==========================================
-           РАБОЧИЙ СТОЛ
+           РАБОЧИЙ СТОЛ И ВЫДЕЛЕНИЕ
         ========================================== */
         #desktop {
-            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 50px);
+            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - var(--tb-height));
             display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
             padding: 10px; gap: 15px; z-index: 1;
         }
 
         .desktop-icon {
-            width: 80px; height: 85px; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start; border-radius: 5px;
-            cursor: pointer; transition: background 0.2s, transform 0.1s; padding-top: 5px;
+            width: 85px; height: 90px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start; border-radius: 8px;
+            cursor: pointer; padding-top: 8px; border: 1px solid transparent;
+            transition: background 0.1s;
         }
         .desktop-icon:hover { background: rgba(255, 255, 255, 0.1); }
-        .desktop-icon:active { transform: scale(0.95); }
-        .desktop-icon span.icon { font-size: 36px; margin-bottom: 5px; pointer-events: none; filter: drop-shadow(2px 4px 6px black); }
-        .desktop-icon span.title { font-size: 12px; text-shadow: 1px 1px 3px #000, -1px -1px 3px #000; text-align: center; word-wrap: break-word; line-height: 1.2; width: 100%; }
+        .desktop-icon.selected { background: rgba(76, 194, 255, 0.3); border-color: rgba(76, 194, 255, 0.5); }
+        
+        .desktop-icon span.icon { font-size: 38px; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; }
+        .desktop-icon span.title { font-size: 12px; text-shadow: 1px 1px 2px #000; text-align: center; word-wrap: break-word; width: 100%; padding: 0 5px; pointer-events: none; }
+        .desktop-icon input.rename-input { width: 100%; font-size: 12px; text-align: center; background: white; color: black; border: none; outline: none; border-radius: 2px; }
+
+        #selection-box {
+            position: absolute; border: 1px solid rgba(76, 194, 255, 0.8);
+            background: rgba(76, 194, 255, 0.3); display: none; z-index: 10; pointer-events: none;
+        }
 
         /* ==========================================
-           ПАНЕЛЬ ЗАДАЧ И ПУСК
+           КОНТЕКСТНОЕ МЕНЮ
+        ========================================== */
+        #context-menu {
+            position: absolute; background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px 0;
+            min-width: 200px; display: none; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .context-item { padding: 8px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .context-item:hover { background: rgba(255,255,255,0.1); }
+        .context-separator { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
+
+        /* ==========================================
+           ПАНЕЛЬ ЗАДАЧ (Taskbar)
         ========================================== */
         #taskbar {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
-            background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            position: absolute; bottom: 0; left: 0; width: 100%; height: var(--tb-height);
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             display: flex; align-items: center; justify-content: center; z-index: 10000;
-            border-top: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            border-top: 1px solid var(--glass-border); transition: height 0.2s; cursor: pointer; /* Для открытия настроек ТБ */
         }
         
         #start-btn {
-            width: 44px; height: 44px; border-radius: 6px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+            width: var(--tb-icon-size); height: var(--tb-icon-size); border-radius: 8px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; margin-right: 10px;
         }
-        #start-btn:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
-        #start-btn:active { transform: scale(0.95); }
+        #start-btn:hover { background: rgba(255, 255, 255, 0.15); }
 
-        .taskbar-apps { display: flex; gap: 5px; margin-left: 10px; }
-        
+        .taskbar-apps { display: flex; gap: var(--tb-gap); pointer-events: none; } /* Клики пропускаем на сами иконки */
         .taskbar-icon {
-            width: 44px; height: 44px; border-radius: 6px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; position: relative;
+            width: var(--tb-icon-size); height: var(--tb-icon-size); border-radius: 8px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; position: relative; pointer-events: auto;
             transition: 0.2s;
         }
-        .taskbar-icon:hover { background: rgba(255, 255, 255, 0.1); }
-        .taskbar-icon.active { background: rgba(255, 255, 255, 0.15); }
+        .taskbar-icon:hover { background: rgba(255, 255, 255, 0.15); }
+        .taskbar-icon.active { background: rgba(255, 255, 255, 0.2); }
         .taskbar-icon.active::after {
-            content: ''; position: absolute; bottom: 2px; width: 16px; height: 3px;
+            content: ''; position: absolute; bottom: 2px; width: 40%; height: 3px;
             background: var(--accent); border-radius: 2px;
         }
 
         #system-tray {
-            position: absolute; right: 15px; display: flex; align-items: center; gap: 15px; font-size: 13px;
+            position: absolute; right: 15px; display: flex; align-items: center; gap: 15px; font-size: 14px; pointer-events: auto;
         }
-        #system-tray .icon { cursor: pointer; transition: 0.2s; }
-        #system-tray .icon:hover { color: var(--accent); }
-        #clock { text-align: right; cursor: pointer; line-height: 1.2; padding: 5px; border-radius: 5px; }
+        #clock { text-align: right; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.2s; }
         #clock:hover { background: rgba(255,255,255,0.1); }
 
+        /* ==========================================
+           ПАНЕЛЬ НАСТРОЕК ТАСКБАРА
+        ========================================== */
+        #tb-settings {
+            position: absolute; bottom: calc(var(--tb-height) + 10px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; width: 300px; z-index: 10001; opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #tb-settings.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+        .tb-slider-group { margin-bottom: 15px; }
+        .tb-slider-group label { font-size: 12px; display: block; margin-bottom: 5px; color: #ccc; }
+        .tb-slider-group input { width: 100%; cursor: pointer; }
+
+        /* ==========================================
+           КАЛЕНДАРЬ И ТАЙМЕР (Клик по часам)
+        ========================================== */
+        #clock-panel {
+            position: absolute; bottom: calc(var(--tb-height) + 10px); right: 10px; transform: translateY(20px);
+            width: 320px; background: var(--glass-bg); backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column;
+            z-index: 10001; opacity: 0; pointer-events: none; transition: all 0.3s ease; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        #clock-panel.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .cp-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .cp-tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .cp-tab:hover { background: rgba(255,255,255,0.05); }
+        .cp-tab.active { border-bottom: 2px solid var(--accent); background: rgba(255,255,255,0.1); }
+        .cp-content { padding: 20px; min-height: 250px; }
+        
+        /* Календарь */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 12px; margin-top: 10px;}
+        .cal-day-header { color: var(--accent); font-weight: bold; margin-bottom: 5px; }
+        .cal-day { padding: 8px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .cal-day:hover { background: rgba(255,255,255,0.1); }
+        .cal-day.today { background: var(--accent); color: black; font-weight: bold; }
+        
+        /* Таймер */
+        .timer-display { font-size: 48px; text-align: center; margin: 20px 0; font-family: monospace; }
+        .timer-controls { display: flex; gap: 10px; justify-content: center; }
+        .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: rgba(255,255,255,0.2); }
+        .btn.primary { background: var(--accent); color: black; font-weight: bold; border: none; }
+        .btn.primary:hover { background: #3ab0f0; }
+        .timer-inputs { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; }
+        .timer-inputs input { width: 50px; background: rgba(0,0,0,0.3); border: 1px solid #555; color: white; text-align: center; padding: 5px; border-radius: 4px; font-size: 16px;}
+
+        /* Уведомления */
+        #notification-area { position: absolute; bottom: 80px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; gap: 10px; }
+        .notification { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); padding: 15px 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease forwards; display: flex; align-items: center; gap: 15px; }
+        @keyframes slideIn { from{transform:translateX(100%); opacity:0;} to{transform:translateX(0); opacity:1;} }
+        @keyframes fadeOut { to{opacity:0; transform:translateY(-10px);} }
+
+        /* ==========================================
+           МЕНЮ ПУСК
+        ========================================== */
         #start-menu {
-            position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%) translateY(20px);
-            width: 90%; max-width: 450px; height: 80vh; max-height: 550px;
-            background: rgba(36, 36, 36, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute; bottom: calc(var(--tb-height) + 15px); left: 50%; transform: translateX(-50%) translateY(20px);
+            width: 450px; height: 600px;
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 12px; border: 1px solid var(--glass-border);
             display: flex; flex-direction: column; padding: 25px; z-index: 10001;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #start-menu.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-        
-        .start-search {
-            width: 100%; padding: 12px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0, 0, 0, 0.2); color: white; outline: none; margin-bottom: 25px; font-size: 14px;
-            transition: 0.2s;
-        }
-        .start-search:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); }
-
+        .start-search { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0, 0, 0, 0.3); color: white; outline: none; margin-bottom: 25px; font-size: 14px; transition: 0.2s; }
+        .start-search:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
         .pinned-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; overflow-y: auto; }
         .pinned-app { display: flex; flex-direction: column; align-items: center; font-size: 12px; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; }
         .pinned-app:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
         .pinned-app span.icon { font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
 
         /* ==========================================
-           СИСТЕМА ОКОН (WINDOW MANAGER)
+           СИСТЕМА ОКОН (Liquid Glass Windows)
         ========================================== */
         .window {
-            position: absolute; background: var(--bg-dark); border-radius: var(--window-radius);
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            position: absolute; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(30px);
+            border-radius: 10px; border: 1px solid var(--glass-border); box-shadow: 0 15px 50px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; overflow: hidden;
-            min-width: 250px; min-height: 200px; transition: transform 0.2s, opacity 0.2s;
+            min-width: 300px; min-height: 200px; transition: transform 0.2s, opacity 0.2s;
         }
         .window.opening { transform: scale(0.9); opacity: 0; }
         .window.closing { transform: scale(0.9); opacity: 0; pointer-events: none; }
         
         .window-header {
             height: 35px; display: flex; justify-content: space-between; align-items: center;
-            background: #2d2d2d; cursor: grab; user-select: none; touch-action: none; /* ВАЖНО ДЛЯ МОБИЛОК */
+            background: rgba(0,0,0,0.2); cursor: default; user-select: none;
         }
-        .window-header:active { cursor: grabbing; }
-        
         .window-title { padding-left: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; font-weight: 500; }
         .window-controls { display: flex; height: 100%; }
-        .win-btn {
-            width: 45px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; font-size: 14px;
-        }
+        .win-btn { width: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .win-btn:hover { background: rgba(255,255,255,0.1); }
         .win-btn.close:hover { background: #e81123; color: white; }
         
-        .window-content { flex-grow: 1; background: var(--bg-darker); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .window-content { flex-grow: 1; background: rgba(15,15,15,0.6); position: relative; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: ПРОВОДНИК
-        ========================================== */
-        .explorer-toolbar {
-            height: 45px; background: var(--bg-dark); display: flex; align-items: center;
-            padding: 0 10px; gap: 10px; border-bottom: 1px solid #333;
-        }
-        .nav-btn { background: rgba(255,255,255,0.05); border: none; color: white; border-radius: 4px; padding: 5px 12px; cursor: pointer; transition: 0.2s; }
-        .nav-btn:hover { background: rgba(255,255,255,0.15); }
-        .address-bar { flex-grow: 1; background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 12px; color: white; font-size: 13px; }
-        
-        .explorer-body { display: flex; flex-grow: 1; height: calc(100% - 45px); }
-        .explorer-sidebar { width: 160px; background: var(--bg-dark); border-right: 1px solid #333; padding: 10px; font-size: 13px; overflow-y: auto; }
-        .explorer-sidebar div { padding: 8px 10px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: 0.1s; margin-bottom: 2px; }
-        .explorer-sidebar div:hover { background: rgba(255,255,255,0.1); }
-        
-        .explorer-main { flex-grow: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-content: flex-start; overflow-y: auto; background: var(--bg-darker); }
-        .file-item {
-            width: 85px; height: 95px; display: flex; flex-direction: column; align-items: center;
-            justify-content: flex-start; cursor: pointer; border-radius: 6px; text-align: center; padding-top: 10px; transition: 0.1s;
-        }
-        .file-item:hover { background: rgba(255,255,255,0.1); }
-        .file-item:active { background: rgba(255,255,255,0.2); transform: scale(0.95); }
-        .file-item span.icon { font-size: 40px; margin-bottom: 5px; }
-        .file-item span.title { font-size: 12px; word-break: break-all; line-height: 1.2; }
+        /* Специфика приложений */
+        /* Хром */
+        .chrome-ui { display: flex; flex-direction: column; height: 100%; background: #202124; color: white; }
+        .chrome-tabs { display: flex; background: #000; padding: 5px 10px 0 10px; gap: 5px; }
+        .chrome-tab { background: #202124; padding: 8px 15px; border-radius: 8px 8px 0 0; font-size: 12px; display: flex; align-items: center; gap: 5px; min-width: 150px; }
+        .chrome-toolbar { display: flex; padding: 8px; gap: 10px; background: #202124; border-bottom: 1px solid #333; align-items: center; }
+        .chrome-url { flex-grow: 1; background: #171717; border: none; padding: 8px 15px; border-radius: 20px; color: white; outline: none; }
+        .chrome-body { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #202124; }
+        .fake-google-logo { font-size: 60px; font-weight: bold; letter-spacing: -2px; margin-bottom: 20px; }
+        .fake-google-logo span:nth-child(1) { color: #4285F4; } .fake-google-logo span:nth-child(2) { color: #EA4335; } .fake-google-logo span:nth-child(3) { color: #FBBC05; } .fake-google-logo span:nth-child(4) { color: #4285F4; } .fake-google-logo span:nth-child(5) { color: #34A853; } .fake-google-logo span:nth-child(6) { color: #EA4335; }
+        .fake-search-box { width: 80%; max-width: 500px; display: flex; background: #303134; border-radius: 24px; padding: 10px 20px; align-items: center; gap: 10px; border: 1px solid #5f6368; }
+        .fake-search-box input { flex-grow: 1; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
+        .fake-search-box input:focus { outline: none; }
 
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: ПАРАМЕТРЫ
-        ========================================== */
-        .settings-body { display: flex; height: 100%; flex-direction: row; }
-        @media (max-width: 600px) { .settings-body { flex-direction: column; } .settings-sidebar { width: 100% !important; height: auto !important; border-bottom: 1px solid #333; display: flex; overflow-x: auto; } .settings-tab { padding: 10px !important; } }
-        .settings-sidebar { width: 220px; background: var(--bg-dark); border-right: 1px solid #333; padding: 10px 0; height: 100%; }
+        /* Сапер */
+        .minesweeper-grid { display: grid; gap: 2px; background: #808080; padding: 2px; border: 3px inset #eee; margin: auto; }
+        .ms-cell { width: 30px; height: 30px; background: #c0c0c0; border: 3px outset #eee; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 16px; user-select: none; }
+        .ms-cell.revealed { background: #dcdcdc; border: 1px solid #999; }
+        .ms-header { display: flex; justify-content: space-between; padding: 10px; background: #c0c0c0; border: 3px inset #eee; margin-bottom: 10px; font-family: monospace; font-size: 24px; background: black; color: red; }
+
+        /* Змейка (Modern) */
+        .snake-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #0f0f1a; position: relative; }
+        canvas.snake-canvas { background: rgba(0,0,0,0.5); border-radius: 12px; box-shadow: 0 0 30px rgba(76, 194, 255, 0.2); }
+        .snake-score-hud { position: absolute; top: 20px; font-size: 24px; font-weight: bold; color: white; text-shadow: 0 0 10px var(--accent); }
+
+        /* Параметры */
+        .settings-body { display: flex; height: 100%; }
+        .settings-sidebar { width: 220px; background: rgba(0,0,0,0.3); border-right: 1px solid rgba(255,255,255,0.1); padding: 10px 0; }
         .settings-tab { padding: 12px 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
         .settings-tab:hover { background: rgba(255,255,255,0.05); }
         .settings-tab.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); }
-        .settings-content { flex-grow: 1; padding: 30px; overflow-y: auto; background: var(--bg-darker); }
-        .settings-card { background: #252525; border-radius: 8px; padding: 25px; margin-bottom: 20px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn-primary { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
-        .btn-primary:hover { background: #3ab0f0; transform: translateY(-1px); }
-        .btn-primary:active { transform: translateY(1px); }
-        
-        /* ВЫБОР ОБОЕВ */
-        .wallpaper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px; }
-        .wp-item { height: 70px; border-radius: 6px; cursor: pointer; background-size: cover; background-position: center; border: 2px solid transparent; transition: 0.2s; }
-        .wp-item:hover { border-color: var(--accent); transform: scale(1.05); }
-
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: КАЛЬКУЛЯТОР
-        ========================================== */
-        .calc-wrapper { display: flex; flex-direction: column; height: 100%; background: #1f1f1f; }
-        .calc-display { background: #1f1f1f; text-align: right; font-size: 48px; padding: 30px 20px; color: white; word-break: break-all; min-height: 120px; display: flex; align-items: flex-end; justify-content: flex-end; }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #111; flex-grow: 1; }
-        .calc-btn { background: #333; border: none; color: white; font-size: 20px; cursor: pointer; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
-        .calc-btn:hover { background: #444; }
-        .calc-btn:active { background: #555; }
-        .calc-btn.op { background: #222; color: var(--accent); font-size: 24px; }
-        .calc-btn.eq { background: var(--accent); color: black; font-size: 24px; }
-
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: БЛОКНОТ (NEW)
-        ========================================== */
-        .notepad-area { width: 100%; height: calc(100% - 40px); background: #fff; color: #000; border: none; padding: 10px; font-family: 'Consolas', monospace; font-size: 14px; resize: none; outline: none; }
-        .notepad-toolbar { height: 40px; background: #f0f0f0; display: flex; align-items: center; padding: 0 10px; border-bottom: 1px solid #ccc; }
-        .np-btn { background: transparent; border: 1px solid transparent; padding: 5px 10px; cursor: pointer; color: #333; font-size: 13px; border-radius: 3px; }
-        .np-btn:hover { background: #e0e0e0; border-color: #ccc; }
-
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: ТЕРМИНАЛ (NEW)
-        ========================================== */
-        .terminal-bg { background: #0c0c0c; color: #00ff00; font-family: 'Consolas', 'Courier New', monospace; padding: 10px; height: 100%; overflow-y: auto; font-size: 14px; }
-        .term-line { margin-bottom: 5px; word-wrap: break-word; }
-        .term-input-line { display: flex; gap: 10px; margin-top: 5px; }
-        .term-input { background: transparent; border: none; color: #00ff00; font-family: inherit; font-size: inherit; outline: none; flex-grow: 1; width: 100%; }
-
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: ЗМЕЙКА (NEW)
-        ========================================== */
-        .snake-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #111; }
-        canvas.snake-canvas { background: #000; border: 2px solid var(--accent); box-shadow: 0 0 20px rgba(76, 194, 255, 0.3); }
-        .snake-score { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: var(--accent); }
-        
-        /* КОНТРОЛЛЫ ДЛЯ ЗМЕЙКИ НА МОБИЛКЕ */
-        .mobile-dpad { display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; gap: 5px; margin-top: 20px; }
-        .dpad-btn { background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; user-select: none; }
-        .dpad-btn:active { background: var(--accent); color: black; }
-        .d-up { grid-column: 2; grid-row: 1; } .d-left { grid-column: 1; grid-row: 2; }
-        .d-right { grid-column: 3; grid-row: 2; } .d-down { grid-column: 2; grid-row: 3; }
-
-        /* ==========================================
-           ПРИЛОЖЕНИЯ: PAINT (NEW)
-        ========================================== */
-        .paint-toolbar { height: 50px; background: #2d2d2d; display: flex; align-items: center; padding: 0 10px; gap: 10px; overflow-x: auto; }
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid #555; transition: 0.2s; }
-        .color-btn.active { border-color: white; transform: scale(1.1); }
-        .paint-canvas-container { flex-grow: 1; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px; }
-        .paint-canvas { background: white; cursor: crosshair; box-shadow: 0 0 10px black; touch-action: none; } /* touch-action:none отключает скролл при рисовании */
-
+        .settings-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        .settings-card { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .wp-item { height: 80px; border-radius: 8px; cursor: pointer; background-size: cover; background-position: center; border: 2px solid transparent; transition: 0.2s; }
+        .wp-item:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <!-- ЗАГЛУШКА ДЛЯ ПОРТРЕТНОГО РЕЖИМА НА МОБИЛЬНЫХ -->
-    <div id="orientation-warning">
-        <span class="icon">📱</span>
-        <h2>Пожалуйста, переверните устройство</h2>
-        <p>WebOS оптимизирована для использования в горизонтальном (landscape) режиме.</p>
-    </div>
-
-    <!-- РАБОЧИЙ СТОЛ (Одинарный клик для мобилок) -->
+    <!-- РАБОЧИЙ СТОЛ -->
     <div id="desktop">
-        <div class="desktop-icon" onclick="openApp('explorer')">
-            <span class="icon">📁</span><span class="title">Проводник</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('browser')">
-            <span class="icon">🌐</span><span class="title">Chrome</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('settings')">
-            <span class="icon">⚙️</span><span class="title">Параметры</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('calc')">
-            <span class="icon">🧮</span><span class="title">Калькулятор</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('notepad')">
-            <span class="icon">📝</span><span class="title">Блокнот</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('terminal')">
-            <span class="icon">⌨️</span><span class="title">Терминал</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('snake')">
-            <span class="icon">🐍</span><span class="title">Змейка</span>
-        </div>
-        <div class="desktop-icon" onclick="openApp('paint')">
-            <span class="icon">🎨</span><span class="title">Paint</span>
-        </div>
+        <!-- Иконки генерируются через JS -->
     </div>
+    <div id="selection-box"></div>
+
+    <!-- КОНТЕКСТНОЕ МЕНЮ -->
+    <div id="context-menu"></div>
+
+    <!-- УВЕДОМЛЕНИЯ -->
+    <div id="notification-area"></div>
 
     <!-- КОНТЕЙНЕР ДЛЯ ОКОН -->
     <div id="windows-container"></div>
 
     <!-- ПАНЕЛЬ ЗАДАЧ -->
     <div id="taskbar">
-        <div id="start-btn" onclick="toggleStartMenu()">
-            <span class="icon" style="color: var(--accent); font-size: 22px; filter: drop-shadow(0 0 5px var(--accent));">❖</span>
+        <div id="start-btn" onclick="toggleStartMenu(event)">
+            <span class="icon" style="color: var(--accent); font-size: 24px; filter: drop-shadow(0 0 5px var(--accent));">❖</span>
         </div>
         <div class="taskbar-apps" id="taskbar-apps"></div>
         <div id="system-tray">
             <span class="icon" title="Звук">🔊</span>
             <span class="icon" title="Интернет">🌐</span>
-            <span class="icon" title="Батарея">🔋</span>
-            <div id="clock">
-                <div id="time" style="font-weight: bold;">12:00</div>
+            <div id="clock" onclick="toggleClockPanel(event)">
+                <div id="time" style="font-weight: bold; font-size:13px;">12:00</div>
                 <div id="date" style="font-size: 11px; color: #ccc;">01.01.2026</div>
             </div>
         </div>
     </div>
 
+    <!-- НАСТРОЙКИ ПАНЕЛИ ЗАДАЧ -->
+    <div id="tb-settings">
+        <h4 style="margin-top:0;">Настройка панели задач</h4>
+        <div class="tb-slider-group">
+            <label>Размер панели (<span id="val-height">50</span>px)</label>
+            <input type="range" id="tb-height-slider" min="40" max="80" value="50">
+        </div>
+        <div class="tb-slider-group">
+            <label>Размер иконок (<span id="val-icon">40</span>px)</label>
+            <input type="range" id="tb-icon-slider" min="30" max="60" value="40">
+        </div>
+        <div class="tb-slider-group">
+            <label>Отступ иконок (<span id="val-gap">8</span>px)</label>
+            <input type="range" id="tb-gap-slider" min="0" max="20" value="8">
+        </div>
+    </div>
+
+    <!-- КАЛЕНДАРЬ И ТАЙМЕР -->
+    <div id="clock-panel">
+        <div class="cp-tabs">
+            <div class="cp-tab active" onclick="switchCpTab('calendar')">Календарь</div>
+            <div class="cp-tab" onclick="switchCpTab('timer')">Таймер</div>
+            <div class="cp-tab" onclick="switchCpTab('stopwatch')">Секундомер</div>
+        </div>
+        <div class="cp-content" id="cp-content">
+            <!-- JS контент -->
+        </div>
+    </div>
+
     <!-- МЕНЮ ПУСК -->
     <div id="start-menu">
-        <input type="text" class="start-search" placeholder="Поиск приложений, файлов, настроек..." onkeyup="if(event.key==='Enter') alert('Поиск пока в разработке!')">
+        <div style="text-align:center; font-size:20px; font-weight:bold; margin-bottom:20px; letter-spacing:1px;">WeLLOS 2</div>
+        <input type="text" class="start-search" placeholder="Поиск приложений, файлов, настроек...">
         <h4 style="margin-top:0; font-weight:500; font-size: 14px;">Закрепленные</h4>
         <div class="pinned-apps">
             <div class="pinned-app" onclick="openApp('explorer'); toggleStartMenu();">
                 <span class="icon">📁</span><span>Проводник</span>
             </div>
-<div class="pinned-app" onclick="openApp('browser'); toggleStartMenu();">
-                <span class="icon">🌐</span><span>Браузер</span>
+            <div class="pinned-app" onclick="openApp('browser'); toggleStartMenu();">
+                <span class="icon">🌐</span><span>Chrome</span>
             </div>
             <div class="pinned-app" onclick="openApp('settings'); toggleStartMenu();">
                 <span class="icon">⚙️</span><span>Параметры</span>
             </div>
-            <div class="pinned-app" onclick="openApp('calc'); toggleStartMenu();">
-                <span class="icon">🧮</span><span>Калькулятор</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('notepad'); toggleStartMenu();">
-                <span class="icon">📝</span><span>Блокнот</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('terminal'); toggleStartMenu();">
-                <span class="icon">⌨️</span><span>Терминал</span>
+            <div class="pinned-app" onclick="openApp('minesweeper'); toggleStartMenu();">
+                <span class="icon">💣</span><span>Сапёр</span>
             </div>
             <div class="pinned-app" onclick="openApp('snake'); toggleStartMenu();">
                 <span class="icon">🐍</span><span>Змейка</span>
             </div>
-            <div class="pinned-app" onclick="openApp('paint'); toggleStartMenu();">
-                <span class="icon">🎨</span><span>Paint</span>
-            </div>
-        </div>
-        
-        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-            <div style="display: flex; align-items: center; gap: 10px; cursor:pointer;">
-                <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: black;">A</div>
-                <span>Admin</span>
-            </div>
-            <span class="icon" style="cursor:pointer; padding:5px;" onclick="location.reload()" title="Перезагрузка">⏻</span>
         </div>
     </div>
 
 <script>
     /* ==========================================================================
-       ЯДРО СИСТЕМЫ (Глобальные переменные, состояния)
+       ЯДРО СИСТЕМЫ И ДАННЫЕ
        ========================================================================== */
     let zIndexCounter = 100;
-    const openWindows = {}; // Хранилище открытых окон
+    const openWindows = {};
 
-    // Конфигурация всех доступных приложений
+    // Данные файлов на рабочем столе
+    let desktopFiles = [
+        { id: 'app_explorer', type: 'app', name: 'Проводник', icon: '📁', target: 'explorer' },
+        { id: 'app_browser', type: 'app', name: 'Google Chrome', icon: '🌐', target: 'browser' },
+        { id: 'app_settings', type: 'app', name: 'Параметры', icon: '⚙️', target: 'settings' },
+        { id: 'app_minesweeper', type: 'app', name: 'Сапёр', icon: '💣', target: 'minesweeper' },
+        { id: 'app_snake', type: 'app', name: 'Змейка', icon: '🐍', target: 'snake' }
+    ];
+
     const apps = {
         'explorer': { title: 'Проводник', icon: '📁', width: 700, height: 500, render: renderExplorer },
-        'browser':  { title: 'Браузер', icon: '🌐', width: 850, height: 550, render: renderBrowser },
-        'settings': { title: 'Параметры', icon: '⚙️', width: 750, height: 500, render: renderSettings },
-        'calc':     { title: 'Калькулятор', icon: '🧮', width: 320, height: 480, render: renderCalculator },
-        'notepad':  { title: 'Блокнот', icon: '📝', width: 600, height: 400, render: renderNotepad },
-        'terminal': { title: 'Терминал', icon: '⌨️', width: 650, height: 400, render: renderTerminal },
-        'snake':    { title: 'Змейка', icon: '🐍', width: 450, height: 600, render: renderSnake },
-        'paint':    { title: 'Paint', icon: '🎨', width: 700, height: 500, render: renderPaint }
+        'browser':  { title: 'Google Chrome', icon: '🌐', width: 900, height: 600, render: renderBrowser },
+        'settings': { title: 'Параметры', icon: '⚙️', width: 750, height: 550, render: renderSettings },
+        'minesweeper': { title: 'Сапёр', icon: '💣', width: 380, height: 450, render: renderMinesweeper },
+        'snake':    { title: 'Змейка Modern', icon: '🐍', width: 500, height: 550, render: renderSnake },
+        'notepad':  { title: 'Блокнот', icon: '📝', width: 600, height: 400, render: renderNotepad }
     };
 
-    // Виртуальная файловая система (ВФС)
-    const fileSystem = {
-        'root': [
-            { name: 'Локальный диск (C:)', type: 'drive', id: 'C' },
-            { name: 'Документы', type: 'folder', id: 'docs' },
-            { name: 'Изображения', type: 'folder', id: 'pics' },
-            { name: 'Игры', type: 'folder', id: 'games' }
-        ],
-        'C': [
-            { name: 'Windows', type: 'folder', id: 'empty' },
-            { name: 'Program Files', type: 'folder', id: 'empty' },
-            { name: 'Users', type: 'folder', id: 'empty' },
-            { name: 'boot.ini', type: 'file_txt', content: '[boot loader]\ntimeout=30\ndefault=multi(0)disk(0)rdisk(0)partition(1)\\WINDOWS' }
-        ],
-        'docs': [
-            { name: 'Пароли.txt', type: 'file_txt', content: 'vk: 123456\nmail: qwerty\nwifi: 87654321' },
-            { name: 'Секретный код.txt', type: 'file_txt', content: 'if (sad) { stopSad(); beAwesome(); }' }
-        ],
-        'pics': [
-            { name: 'Обои 1.jpg', type: 'file_img', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800' },
-            { name: 'Обои 2.jpg', type: 'file_img', url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=800' }
-        ],
-        'games': [
-            { name: 'Snake.exe', type: 'app', appId: 'snake' }
-        ],
-        'empty': []
-    };
-
-    let currentPath = 'root'; 
-    let pathHistory = [];
-
-    // Глобальное хранилище данных приложений
-    const appData = {
-        notepadText: "Добро пожаловать в WebOS Notepad!\n\nМожете писать здесь свой текст. Если закроете приложение, текст сбросится."
-    };
+    let fileContentStorage = {}; // Хранилище текстов для созданных файлов
 
     /* ==========================================================================
-       МЕНЕДЖЕР ОКОН (Создание, Фокус, Перемещение, Закрытие)
+       РЕНДЕР РАБОЧЕГО СТОЛА
        ========================================================================== */
+    function renderDesktop() {
+        const d = document.getElementById('desktop');
+        d.innerHTML = '';
+        desktopFiles.forEach(file => {
+            const div = document.createElement('div');
+            div.className = 'desktop-icon';
+            div.id = 'desk-' + file.id;
+            div.innerHTML = `<span class="icon">${file.icon}</span><span class="title">${file.name}</span>`;
+            
+            // Выделение при клике
+            div.onmousedown = (e) => {
+                e.stopPropagation();
+                if(e.button === 0) { // ЛКМ
+                    document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                }
+            };
+            
+            // ДВОЙНОЙ КЛИК - запуск/открытие (по просьбе "только ПК")
+            div.ondblclick = () => {
+                if(file.type === 'app') openApp(file.target);
+                else if(file.type === 'folder') alert('Папка пуста');
+                else if(file.type === 'txt') {
+                    appData.notepadTargetId = file.id;
+                    appData.notepadText = fileContentStorage[file.id] || '';
+                    openApp('notepad');
+                }
+            };
+
+            // Контекстное меню для иконки
+            div.oncontextmenu = (e) => {
+                e.preventDefault(); e.stopPropagation();
+                document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
+                div.classList.add('selected');
+                showContextMenu(e.clientX, e.clientY, [
+                    { label: 'Открыть', action: () => div.ondblclick() },
+                    { label: 'Переименовать', action: () => renameIcon(file.id) },
+                    { label: 'Удалить', action: () => { desktopFiles = desktopFiles.filter(f => f.id !== file.id); renderDesktop(); } }
+                ]);
+            };
+
+            d.appendChild(div);
+        });
+    }
+
+    /* ==========================================================================
+       ВЫДЕЛЕНИЕ РАМКОЙ И КЛИКИ ПО РАБОЧЕМУ СТОЛУ
+       ========================================================================== */
+    const desktopEl = document.getElementById('desktop');
+    const selectionBox = document.getElementById('selection-box');
+    let isSelecting = false, startX, startY;
+
+    desktopEl.addEventListener('mousedown', (e) => {
+        if(e.target !== desktopEl) return;
+        if(e.button !== 0) return; // Только ЛКМ
+        
+        hideMenus();
+        document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
+        
+        isSelecting = true;
+        startX = e.clientX; startY = e.clientY;
+        selectionBox.style.display = 'block';
+        selectionBox.style.left = startX + 'px';
+        selectionBox.style.top = startY + 'px';
+        selectionBox.style.width = '0px';
+        selectionBox.style.height = '0px';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if(!isSelecting) return;
+        const currentX = e.clientX; const currentY = e.clientY;
+        const x = Math.min(startX, currentX); const y = Math.min(startY, currentY);
+        const w = Math.abs(currentX - startX); const h = Math.abs(currentY - startY);
+        
+        selectionBox.style.left = x + 'px'; selectionBox.style.top = y + 'px';
+        selectionBox.style.width = w + 'px'; selectionBox.style.height = h + 'px';
+
+        // Проверка пересечения
+        const rect1 = selectionBox.getBoundingClientRect();
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            const rect2 = icon.getBoundingClientRect();
+            const overlap = !(rect2.left > rect1.right || rect2.right < rect1.left || rect2.top > rect1.bottom || rect2.bottom < rect1.top);
+            if(overlap) icon.classList.add('selected');
+            else icon.classList.remove('selected');
+        });
+    });
+
+    document.addEventListener('mouseup', () => {
+        isSelecting = false;
+        selectionBox.style.display = 'none';
+    });
+
+    /* ==========================================================================
+       КОНТЕКСТНОЕ МЕНЮ И СОЗДАНИЕ ФАЙЛОВ
+       ========================================================================== */
+    const ctxMenu = document.getElementById('context-menu');
+
+    function showContextMenu(x, y, items) {
+        ctxMenu.innerHTML = '';
+        items.forEach(item => {
+            if(item.separator) {
+                const sep = document.createElement('div'); sep.className = 'context-separator'; ctxMenu.appendChild(sep); return;
+            }
+            const div = document.createElement('div'); div.className = 'context-item';
+            div.innerText = item.label;
+            div.onclick = (e) => { e.stopPropagation(); item.action(); hideMenus(); };
+            ctxMenu.appendChild(div);
+        });
+        
+        ctxMenu.style.display = 'block';
+        // Фикс выхода за экран
+        let posX = x; let posY = y;
+        if(posX + ctxMenu.offsetWidth > window.innerWidth) posX -= ctxMenu.offsetWidth;
+        if(posY + ctxMenu.offsetHeight > window.innerHeight) posY -= ctxMenu.offsetHeight;
+        
+        ctxMenu.style.left = posX + 'px'; ctxMenu.style.top = posY + 'px';
+    }
+
+    function hideMenus() {
+        ctxMenu.style.display = 'none';
+        document.getElementById('start-menu').classList.remove('show');
+        document.getElementById('tb-settings').classList.remove('show');
+        document.getElementById('clock-panel').classList.remove('show');
+    }
+
+    // Правый клик по рабочему столу
+    desktopEl.addEventListener('contextmenu', (e) => {
+        if(e.target !== desktopEl) return;
+        e.preventDefault();
+        showContextMenu(e.clientX, e.clientY, [
+            { label: '📁 Создать папку', action: () => createDeskItem('folder', 'Новая папка', '📁') },
+            { label: '📝 Создать текстовый файл', action: () => createDeskItem('txt', 'Новый документ.txt', '📄') },
+            { separator: true },
+            { label: '🎨 Сменить обои (Параметры)', action: () => openApp('settings') },
+            { label: '🔄 Обновить', action: () => renderDesktop() }
+        ]);
+    });
+
+    function createDeskItem(type, name, icon) {
+        const id = 'item_' + Date.now();
+        desktopFiles.push({ id, type, name, icon });
+        if(type === 'txt') fileContentStorage[id] = '';
+        renderDesktop();
+        // Сразу запускаем переименование
+        setTimeout(() => renameIcon(id), 100);
+    }
+
+    function renameIcon(id) {
+        const iconDiv = document.getElementById('desk-' + id);
+        if(!iconDiv) return;
+        const titleSpan = iconDiv.querySelector('.title');
+        const fileObj = desktopFiles.find(f => f.id === id);
+        
+        const input = document.createElement('input');
+        input.type = 'text'; input.className = 'rename-input'; input.value = fileObj.name;
+        
+        titleSpan.replaceWith(input);
+        input.focus(); input.select();
+
+        const finishRename = () => {
+            const newName = input.value.trim() || 'Без имени';
+            fileObj.name = newName;
+            renderDesktop();
+        };
+
+        input.onblur = finishRename;
+        input.onkeydown = (e) => { if(e.key === 'Enter') finishRename(); };
+    }
+
+    // Скрытие меню при клике мимо
+    document.addEventListener('mousedown', (e) => {
+        if(!ctxMenu.contains(e.target)) ctxMenu.style.display = 'none';
+        
+        // Закрытие других панелей
+        const targetIds = ['start-menu', 'start-btn', 'clock-panel', 'clock', 'tb-settings', 'taskbar'];
+        let clickInside = false;
+        targetIds.forEach(id => {
+            const el = document.getElementById(id);
+            if(el && el.contains(e.target)) clickInside = true;
+        });
+        if(!clickInside) {
+            document.getElementById('start-menu').classList.remove('show');
+            document.getElementById('clock-panel').classList.remove('show');
+            document.getElementById('tb-settings').classList.remove('show');
+        }
+    });
+
+    /* ==========================================================================
+       НАСТРОЙКИ ПАНЕЛИ ЗАДАЧ (По левому клику на панель)
+       ========================================================================== */
+    document.getElementById('taskbar').addEventListener('mousedown', (e) => {
+        // Если клик именно по фону таскбара, а не по кнопкам
+        if(e.target.id === 'taskbar' || e.target.id === 'system-tray' || e.target.className === 'taskbar-apps') {
+            document.getElementById('tb-settings').classList.toggle('show');
+            hideMenusExcept('tb-settings');
+        }
+    });
+
+    function setupTbSliders() {
+        const hSlider = document.getElementById('tb-height-slider');
+        const iSlider = document.getElementById('tb-icon-slider');
+        const gSlider = document.getElementById('tb-gap-slider');
+        
+        hSlider.oninput = () => { document.documentElement.style.setProperty('--tb-height', hSlider.value + 'px'); document.getElementById('val-height').innerText = hSlider.value; };
+        iSlider.oninput = () => { document.documentElement.style.setProperty('--tb-icon-size', iSlider.value + 'px'); document.getElementById('val-icon').innerText = iSlider.value; };
+        gSlider.oninput = () => { document.documentElement.style.setProperty('--tb-gap', gSlider.value + 'px'); document.getElementById('val-gap').innerText = gSlider.value; };
+    }
+
+    /* ==========================================================================
+       КАЛЕНДАРЬ, ТАЙМЕР, СЕКУНДОМЕР
+       ========================================================================== */
+    function toggleClockPanel(e) {
+        e.stopPropagation();
+        document.getElementById('clock-panel').classList.toggle('show');
+        hideMenusExcept('clock-panel');
+        switchCpTab('calendar');
+    }
+
+    function switchCpTab(tab) {
+        document.querySelectorAll('.cp-tab').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        const content = document.getElementById('cp-content');
+        
+        if(tab === 'calendar') renderCalendar(content);
+        if(tab === 'timer') renderTimer(content);
+        if(tab === 'stopwatch') renderStopwatch(content);
+    }
+
+    function renderCalendar(container) {
+        const now = new Date();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay(); // 0 = Sunday
+        const shift = firstDay === 0 ? 6 : firstDay - 1; // Делаем Пн первым
+        
+        const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+        
+        let html = `<h3 style="margin-top:0; text-align:center;">${monthNames[now.getMonth()]} ${now.getFullYear()}</h3>`;
+        html += `<div class="calendar-grid">`;
+        ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => html += `<div class="cal-day-header">${d}</div>`);
+        
+        for(let i=0; i<shift; i++) html += `<div></div>`;
+        for(let i=1; i<=daysInMonth; i++) {
+            let cl = 'cal-day';
+            if(i === now.getDate()) cl += ' today';
+            html += `<div class="${cl}">${i}</div>`;
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    // ТАЙМЕР ЛОГИКА
+    let timerInterval = null;
+    let timerSeconds = 0;
+    function renderTimer(container) {
+        container.innerHTML = `
+            <h3 style="margin-top:0; text-align:center;">Таймер</h3>
+            <div class="timer-inputs">
+                <input type="number" id="t-min" placeholder="Мин" min="0" value="1">
+                <span style="font-size:24px;">:</span>
+                <input type="number" id="t-sec" placeholder="Сек" min="0" max="59" value="0">
+            </div>
+            <div class="timer-display" id="t-display">01:00</div>
+            <div class="timer-controls">
+                <button class="btn primary" id="t-start" onclick="startTimer()">Старт</button>
+                <button class="btn" onclick="stopTimer()">Стоп</button>
+            </div>
+        `;
+        updateTimerDisplay();
+    }
+
+    function startTimer() {
+        if(timerInterval) clearInterval(timerInterval);
+        const m = parseInt(document.getElementById('t-min').value) || 0;
+        const s = parseInt(document.getElementById('t-sec').value) || 0;
+        timerSeconds = m * 60 + s;
+        if(timerSeconds <= 0) return;
+        
+        document.getElementById('t-start').innerText = 'Заново';
+        
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            updateTimerDisplay();
+            if(timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                showNotification("⏰ Время вышло!", "Ваш таймер завершил работу.");
+                document.getElementById('t-start').innerText = 'Старт';
+            }
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); document.getElementById('t-start').innerText = 'Старт'; }
+    function updateTimerDisplay() {
+        const d = document.getElementById('t-display');
+        if(!d) return;
+        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const s = String(timerSeconds % 60).padStart(2, '0');
+        d.innerText = `${m}:${s}`;
+    }
+
+    // СЕКУНДОМЕР
+    let swInterval = null;
+    let swTime = 0;
+    function renderStopwatch(container) {
+        container.innerHTML = `
+            <h3 style="margin-top:0; text-align:center;">Секундомер</h3>
+            <div class="timer-display" id="sw-display">00:00.0</div>
+            <div class="timer-controls">
+                <button class="btn primary" onclick="startSw()">Старт</button>
+                <button class="btn" onclick="stopSw()">Стоп</button>
+                <button class="btn" onclick="resetSw()">Сброс</button>
+            </div>
+        `;
+    }
+    function startSw() {
+        if(swInterval) return;
+        swInterval = setInterval(() => { swTime += 100; updateSw(); }, 100);
+    }
+    function stopSw() { clearInterval(swInterval); swInterval = null; }
+    function resetSw() { stopSw(); swTime = 0; updateSw(); }
+    function updateSw() {
+        const d = document.getElementById('sw-display');
+        if(!d) return;
+        const totalSec = Math.floor(swTime / 1000);
+        const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+        const s = String(totalSec % 60).padStart(2, '0');
+        const ms = (swTime % 1000) / 100;
+        d.innerText = `${m}:${s}.${ms}`;
+    }
+
+    function showNotification(title, text) {
+        const area = document.getElementById('notification-area');
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        notif.innerHTML = `<div><strong style="color:var(--accent);">${title}</strong><br><span style="font-size:12px;">${text}</span></div>`;
+        area.appendChild(notif);
+        setTimeout(() => {
+            notif.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => notif.remove(), 300);
+        }, 5000);
+    }
+
+    // Часы в трее
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('date').innerText = now.toLocaleDateString();
+    }, 1000);
+
+    /* ==========================================================================
+       УПРАВЛЕНИЕ ОКНАМИ
+       ========================================================================== */
+    function toggleStartMenu(e) { e.stopPropagation(); document.getElementById('start-menu').classList.toggle('show'); hideMenusExcept('start-menu'); }
+    function hideMenusExcept(id) {
+        if(id !== 'start-menu') document.getElementById('start-menu').classList.remove('show');
+        if(id !== 'clock-panel') document.getElementById('clock-panel').classList.remove('show');
+        if(id !== 'tb-settings') document.getElementById('tb-settings').classList.remove('show');
+    }
+
+    const appData = {}; // Глобальное хранилище состояния
 
     function openApp(appId) {
-        // Если окно уже открыто - просто фокусируем
-        if (openWindows[appId]) {
-            focusWindow(appId);
-            return;
-        }
+        if (openWindows[appId]) { focusWindow(appId); return; }
 
         const app = apps[appId];
         const winId = 'win-' + appId;
         
-        // Рассчитываем размер с учетом мобильных экранов
-        let winWidth = app.width;
-        let winHeight = app.height;
-        if (window.innerWidth < winWidth + 20) winWidth = window.innerWidth - 20;
-        if (window.innerHeight < winHeight + 60) winHeight = window.innerHeight - 60;
-
         const win = document.createElement('div');
-        win.className = 'window opening'; // Класс для анимации
+        win.className = 'window opening';
         win.id = winId;
-        win.style.width = winWidth + 'px';
-        win.style.height = winHeight + 'px';
+        win.style.width = app.width + 'px'; win.style.height = app.height + 'px';
         
-        // Центрируем с небольшим случайным смещением
-        const maxLeft = window.innerWidth - winWidth;
-        const maxTop = window.innerHeight - winHeight - 50;
-        let startLeft = Math.max(0, (window.innerWidth / 2 - winWidth / 2) + (Math.random()*40-20));
-        let startTop = Math.max(0, (window.innerHeight / 2 - winHeight / 2) + (Math.random()*40-20));
-        
-        win.style.left = startLeft + 'px';
-        win.style.top = startTop + 'px';
+        let startLeft = Math.max(0, (window.innerWidth / 2 - app.width / 2) + (Math.random()*40-20));
+        let startTop = Math.max(0, (window.innerHeight / 2 - app.height / 2) + (Math.random()*40-20));
+        win.style.left = startLeft + 'px'; win.style.top = startTop + 'px';
         win.style.zIndex = ++zIndexCounter;
 
-        // HTML структура окна
         win.innerHTML = `
-            <div class="window-header" onpointerdown="focusWindow('${appId}')">
-                <div class="window-title">
-                    <span class="icon" style="font-size:14px;">${app.icon}</span> ${app.title}
-                </div>
+            <div class="window-header" onmousedown="focusWindow('${appId}')">
+                <div class="window-title"><span class="icon">${app.icon}</span> ${app.title}</div>
                 <div class="window-controls">
                     <div class="win-btn" onclick="minimizeWindow('${appId}')">—</div>
-                    <div class="win-btn" onclick="maximizeWindow('${appId}')">□</div>
+                    <div class="win-btn" 
+onclick="maximizeWindow('${appId}')">□</div>
                     <div class="win-btn close" onclick="closeWindow('${appId}')">✕</div>
                 </div>
             </div>
-            <div class="window-content" id="content-${appId}" onpointerdown="focusWindow('${appId}')">
-                <!-- Контент генерируется через render-функцию -->
-            </div>
+            <div class="window-content" id="content-${appId}" onmousedown="focusWindow('${appId}')"></div>
         `;
 
         document.getElementById('windows-container').appendChild(win);
-        
-        // Снимаем класс анимации через секунду
         setTimeout(() => win.classList.remove('opening'), 50);
 
         openWindows[appId] = { element: win, minimized: false, maximized: false };
         
-        makeDraggableResponsive(win, win.querySelector('.window-header'));
+        makeDraggable(win, win.querySelector('.window-header'));
         addToTaskbar(appId);
         
-        // Вызов специфичного рендера для приложения
-        if(app.render) {
-            app.render(document.getElementById('content-' + appId), appId);
-        }
+        if(app.render) app.render(document.getElementById('content-' + appId), appId);
     }
 
     function closeWindow(appId) {
         if (openWindows[appId]) {
             const win = openWindows[appId].element;
             win.classList.add('closing');
-            
-            // Если это змейка, убиваем таймер
             if(appId === 'snake' && window.snakeInterval) clearInterval(window.snakeInterval);
-
-            setTimeout(() => {
-                win.remove();
-                delete openWindows[appId];
-                removeFromTaskbar(appId);
-            }, 200); // Ждем окончания анимации
+            setTimeout(() => { win.remove(); delete openWindows[appId]; removeFromTaskbar(appId); }, 200);
         }
     }
 
     function focusWindow(appId) {
         if (openWindows[appId]) {
-            if (openWindows[appId].minimized) {
-                openWindows[appId].element.style.display = 'flex';
-                openWindows[appId].minimized = false;
-            }
+            if (openWindows[appId].minimized) { openWindows[appId].element.style.display = 'flex'; openWindows[appId].minimized = false; }
             openWindows[appId].element.style.zIndex = ++zIndexCounter;
             updateTaskbarActive(appId);
         }
@@ -516,8 +780,7 @@
 
     function minimizeWindow(appId) {
         if (openWindows[appId]) {
-            openWindows[appId].element.style.display = 'none';
-            openWindows[appId].minimized = true;
+            openWindows[appId].element.style.display = 'none'; openWindows[appId].minimized = true;
             document.getElementById('tb-' + appId).classList.remove('active');
         }
     }
@@ -528,617 +791,386 @@
             openWindows[appId].prevRect = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
             win.style.transition = 'all 0.2s ease';
             win.style.left = '0px'; win.style.top = '0px';
-            win.style.width = '100vw'; win.style.height = 'calc(100vh - 50px)';
+            win.style.width = '100vw'; win.style.height = `calc(100vh - var(--tb-height))`;
             openWindows[appId].maximized = true;
-            setTimeout(() => win.style.transition = 'transform 0.2s, opacity 0.2s', 200); // Убираем transition для перетаскивания
+            setTimeout(() => win.style.transition = 'transform 0.2s, opacity 0.2s', 200);
         } else {
             const rect = openWindows[appId].prevRect;
             win.style.transition = 'all 0.2s ease';
-            win.style.left = rect.left; win.style.top = rect.top;
-            win.style.width = rect.width; win.style.height = rect.height;
+            win.style.left = rect.left; win.style.top = rect.top; win.style.width = rect.width; win.style.height = rect.height;
             openWindows[appId].maximized = false;
             setTimeout(() => win.style.transition = 'transform 0.2s, opacity 0.2s', 200);
         }
     }
 
-    // ИСПРАВЛЕНИЕ: Перетаскивание для мобилок (Pointer Events)
-    function makeDraggableResponsive(win, header) {
+    function makeDraggable(win, header) {
         let isDragging = false, startX, startY, initialLeft, initialTop;
-
-        header.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('.window-controls')) return; // Игнорим кнопки управления
-            if (openWindows[win.id.replace('win-','')].maximized) return; // Не таскаем развернутое
-
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            initialLeft = parseInt(win.style.left) || 0;
-            initialTop = parseInt(win.style.top) || 0;
-            
-            header.setPointerCapture(e.pointerId); // Захват указателя, чтобы не терять при быстром движении
+        header.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.window-controls') || openWindows[win.id.replace('win-','')].maximized) return;
+            isDragging = true; startX = e.clientX; startY = e.clientY;
+            initialLeft = parseInt(win.style.left) || 0; initialTop = parseInt(win.style.top) || 0;
         });
-
-        header.addEventListener('pointermove', (e) => {
+        document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            win.style.left = `${initialLeft + dx}px`;
-            win.style.top = `${initialTop + dy}px`;
+            win.style.left = `${initialLeft + (e.clientX - startX)}px`;
+            win.style.top = `${initialTop + (e.clientY - startY)}px`;
         });
-
-        header.addEventListener('pointerup', (e) => {
-            isDragging = false;
-            header.releasePointerCapture(e.pointerId);
-        });
-        header.addEventListener('pointercancel', (e) => {
-            isDragging = false;
-            header.releasePointerCapture(e.pointerId);
-        });
+        document.addEventListener('mouseup', () => { isDragging = false; });
     }
 
-    /* ==========================================================================
-       ПАНЕЛЬ ЗАДАЧ И ПУСК
-       ========================================================================== */
     function addToTaskbar(appId) {
         const tb = document.getElementById('taskbar-apps');
-        const app = apps[appId];
         const icon = document.createElement('div');
-        icon.className = 'taskbar-icon active';
-        icon.id = 'tb-' + appId;
-        icon.innerHTML = `<span class="icon" style="font-size:24px;">${app.icon}</span>`;
-        icon.onclick = () => {
-            if (openWindows[appId].minimized || openWindows[appId].element.style.zIndex != zIndexCounter) {
-                focusWindow(appId);
-            } else {
-                minimizeWindow(appId);
-            }
+        icon.className = 'taskbar-icon active'; icon.id = 'tb-' + appId;
+        icon.innerHTML = `<span class="icon" style="font-size:24px;">${apps[appId].icon}</span>`;
+        icon.onclick = (e) => {
+            e.stopPropagation(); // Чтобы не открывались настройки таскбара
+            if (openWindows[appId].minimized || openWindows[appId].element.style.zIndex != zIndexCounter) focusWindow(appId);
+            else minimizeWindow(appId);
         };
         tb.appendChild(icon);
     }
-
-    function removeFromTaskbar(appId) {
-        const icon = document.getElementById('tb-' + appId);
-        if (icon) icon.remove();
-    }
-
+    function removeFromTaskbar(appId) { const icon = document.getElementById('tb-' + appId); if (icon) icon.remove(); }
     function updateTaskbarActive(appId) {
         document.querySelectorAll('.taskbar-icon').forEach(el => el.classList.remove('active'));
         const activeTb = document.getElementById('tb-' + appId);
         if (activeTb) activeTb.classList.add('active');
     }
 
-    function toggleStartMenu() {
-        document.getElementById('start-menu').classList.toggle('show');
-    }
-
-    // Закрытие пуска по клику мимо
-    document.addEventListener('pointerdown', (e) => {
-        const menu = document.getElementById('start-menu');
-        const btn = document.getElementById('start-btn');
-        if (menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
-            menu.classList.remove('show');
-        }
-    });
-
-    // Часы
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        document.getElementById('date').innerText = now.toLocaleDateString();
-    }, 1000);
-
-
     /* ==========================================================================
-       ПРИЛОЖЕНИЕ: ПРОВОДНИК
-       ========================================================================== */
-    function renderExplorer(container) {
-        container.innerHTML = `
-            <div class="explorer-toolbar">
-                <button class="nav-btn" id="exp-back" title="Назад">←</button>
-                <button class="nav-btn" onclick="navExplorer('root')" title="Домой">🏠</button>
-                <div class="address-bar" id="exp-address">Этот компьютер</div>
-            </div>
-            <div class="explorer-body">
-                <div class="explorer-sidebar">
-                    <div onclick="navExplorer('root')"><span>💻</span> Этот компьютер</div>
-                    <div onclick="navExplorer('C')"><span>💽</span> Диск (C:)</div>
-                    <div onclick="navExplorer('docs')"><span>📄</span> Документы</div>
-                    <div onclick="navExplorer('pics')"><span>🖼️</span> Изображения</div>
-                </div>
-                <div class="explorer-main" id="exp-main"></div>
-            </div>
-        `;
-        
-        document.getElementById('exp-back').onclick = () => {
-            if (pathHistory.length > 0) {
-                currentPath = pathHistory.pop();
-                drawFiles();
-            }
-        };
-        drawFiles(); 
-    }
-
-    function navExplorer(folderId) {
-        if(currentPath !== folderId) pathHistory.push(currentPath);
-        currentPath = folderId;
-        drawFiles();
-    }
-
-    function drawFiles() {
-        const main = document.getElementById('exp-main');
-        const address = document.getElementById('exp-address');
-        if(!main) return;
-        main.innerHTML = '';
-        
-        let pathName = currentPath;
-        if(currentPath === 'root') pathName = "Этот компьютер";
-        address.innerText = "Путь: " + pathName;
-        
-        const items = fileSystem[currentPath] || [];
-        if(items.length === 0) {
-            main.innerHTML = '<div style="color:#777; width:100%; text-align:center; margin-top:20px;">Папка пуста</div>';
-            return;
-        }
-
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'file-item';
-            
-            let icon = '📄';
-            if(item.type === 'folder') icon = '📁';
-            if(item.type === 'drive') icon = '💽';
-            if(item.type === 'file_txt') icon = '📝';
-            if(item.type === 'file_img') icon = '🖼️';
-            if(item.type === 'app') icon = '🚀';
-
-            div.innerHTML = `<span class="icon">${icon}</span><span class="title">${item.name}</span>`;
-            
-            // На мобилках лучше одинарный клик для навигации
-            div.onclick = () => {
-                if (item.type === 'folder' || item.type === 'drive') {
-                    navExplorer(item.id || 'empty');
-                } else if (item.type === 'file_txt') {
-                    appData.notepadText = item.content;
-                    openApp('notepad');
-                } else if (item.type === 'file_img') {
-                    alert('Для просмотра изображений установите приложение Галерея.\nURL файла: ' + item.url);
-                } else if (item.type === 'app') {
-                    openApp(item.appId);
-                }
-            };
-            main.appendChild(div);
-        });
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЕ: БЛОКНОТ
+       ПРИЛОЖЕНИЯ: БЛОКНОТ (С СОХРАНЕНИЕМ)
        ========================================================================== */
     function renderNotepad(container) {
+        const text = appData.notepadText || '';
         container.innerHTML = `
-            <div class="notepad-toolbar">
-                <button class="np-btn" onclick="alert('Файл сохранен в оперативной памяти (временно)')">💾 Сохранить</button>
-                <button class="np-btn" onclick="document.getElementById('np-text').value=''">📄 Очистить</button>
+            <div style="height: 40px; background: #2d2d2d; display: flex; align-items: center; padding: 0 10px; border-bottom: 1px solid #444;">
+                <button class="btn" onclick="saveNotepad()">💾 Сохранить</button>
             </div>
-            <textarea class="notepad-area" id="np-text" spellcheck="false">${appData.notepadText}</textarea>
+            <textarea id="np-text" style="width:100%; height:calc(100% - 40px); background:#1e1e1e; color:#ccc; font-family:Consolas; font-size:14px; padding:10px; border:none; outline:none; resize:none;">${text}</textarea>
         `;
-        
-        // Сохраняем текст при вводе
-        document.getElementById('np-text').addEventListener('input', function() {
-            appData.notepadText = this.value;
-        });
+    }
+    function saveNotepad() {
+        if(appData.notepadTargetId) {
+            fileContentStorage[appData.notepadTargetId] = document.getElementById('np-text').value;
+            showNotification("Блокнот", "Файл успешно сохранен!");
+        } else {
+            alert("Этот документ не привязан к файлу на рабочем столе.");
+        }
     }
 
     /* ==========================================================================
-       ПРИЛОЖЕНИЕ: ТЕРМИНАЛ
+       ПРИЛОЖЕНИЯ: GOOGLE CHROME (Встроенный фейк)
        ========================================================================== */
-    function renderTerminal(container) {
+    function renderBrowser(container) {
         container.innerHTML = `
-            <div class="terminal-bg" id="term-bg" onclick="document.getElementById('term-input').focus()">
-                <div class="term-line">WebOS Terminal [Version 11.0.19045.2965]</div>
-                <div class="term-line">(c) WebOS Corporation. All rights reserved.</div>
-                <div class="term-line">Введите 'help' для списка команд.</div>
-                <div id="term-output"></div>
-                <div class="term-input-line">
-                    <span id="term-path">C:\\Users\\Admin></span>
-                    <input type="text" class="term-input" id="term-input" autocomplete="off">
+            <div class="chrome-ui">
+                <div class="chrome-tabs">
+                    <div class="chrome-tab">
+                        <img src="https://www.google.com/favicon.ico" width="16"> Новая вкладка
+                        <span style="margin-left:auto; cursor:pointer;" onclick="closeWindow('browser')">✕</span>
+                    </div>
+                </div>
+                <div class="chrome-toolbar">
+                    <button class="btn" style="border-radius:50%; width:30px; height:30px; padding:0;">←</button>
+                    <button class="btn" style="border-radius:50%; width:30px; height:30px; padding:0;" onclick="renderBrowser(document.getElementById('content-browser'))">↻</button>
+                    <input type="text" class="chrome-url" id="chrome-url" value="https://google.com">
+                </div>
+                <div class="chrome-body" id="chrome-body">
+                    <div class="fake-google-logo">
+                        <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+                    </div>
+                    <div class="fake-search-box">
+                        <span style="color:#9aa0a6;">🔍</span>
+                        <input type="text" id="chrome-search" placeholder="Введите поисковый запрос или URL" onkeydown="if(event.key==='Enter') chromeSearch()">
+                        <span style="color:#4285F4; cursor:pointer;" title="Микрофон">🎤</span>
+                    </div>
+                    <div style="margin-top: 30px; display:flex; gap:10px;">
+                        <button class="btn" style="background:#303134; border:none;" onclick="chromeSearch()">Поиск в Google</button>
+                        <button class="btn" style="background:#303134; border:none;">Мне повезёт!</button>
+                    </div>
                 </div>
             </div>
         `;
-        
-        const input = document.getElementById('term-input');
-        const output = document.getElementById('term-output');
-        
-        input.addEventListener('keydown', function(e) {
-            if(e.key === 'Enter') {
-                const cmd = this.value.trim();
-                const pathStr = document.getElementById('term-path').innerText;
-                
-                // Печатаем команду в лог
-                output.innerHTML += `<div class="term-input-line"><span>${pathStr}</span> <span style="margin-left:10px;">${cmd}</span></div>`;
-                
-                // Обработка
-                processCommand(cmd, output);
-                
-                this.value = '';
-                document.getElementById('term-bg').scrollTop = document.getElementById('term-bg').scrollHeight;
-            }
-        });
     }
-    
-    function processCommand(cmd, output) {
-        const args = cmd.split(' ');
-        const main = args[0].toLowerCase();
-        
-        if(!main) return;
-        
-        let res = '';
-        switch(main) {
-            case 'help': res = 'Доступные команды: help, echo, date, clear, calc, whoami'; break;
-            case 'echo': res = args.slice(1).join(' '); break;
-            case 'date': res = new Date().toString(); break;
-            case 'clear': output.innerHTML = ''; return;
-            case 'calc': openApp('calc'); res = 'Запуск калькулятора...'; break;
-            case 'whoami': res = 'admin_user'; break;
-            default: res = `'${main}' не является внутренней или внешней командой.`;
-        }
-        output.innerHTML += `<div class="term-line">${res}</div>`;
+    function chromeSearch() {
+        const query = document.getElementById('chrome-search').value;
+        const body = document.getElementById('chrome-body');
+        document.getElementById('chrome-url').value = `https://google.com/search?q=${encodeURIComponent(query)}`;
+        body.innerHTML = `
+            <div style="padding: 20px; width: 100%; height: 100%; align-items:flex-start; justify-content:flex-start;">
+                <div style="color:#9aa0a6; font-size:14px; margin-bottom:20px;">Результатов: примерно 1 337 000 (0.42 сек.)</div>
+                <h3 style="color:#8ab4f8; margin:0 0 5px 0; cursor:pointer; font-size:20px;">${query} - Википедия</h3>
+                <div style="color:#bdc1c6; font-size:14px; margin-bottom: 20px;">Вы искали "${query}". В рамках WeLLOS 2 это симуляция браузера, так как реальные сайты блокируют iframe. Но выглядит круто, правда?</div>
+                
+                <h3 style="color:#8ab4f8; margin:0 0 5px 0; cursor:pointer; font-size:20px;">Картинки по запросу "${query}"</h3>
+                <div style="display:flex; gap:10px;">
+                    <div style="width:120px; height:80px; background:#444; border-radius:8px;"></div>
+                    <div style="width:120px; height:80px; background:#555; border-radius:8px;"></div>
+                    <div style="width:120px; height:80px; background:#666; border-radius:8px;"></div>
+                </div>
+            </div>
+        `;
     }
 
     /* ==========================================================================
-       ПРИЛОЖЕНИЕ: ПАРАМЕТРЫ
+       ПРИЛОЖЕНИЯ: САПЁР
+       ========================================================================== */
+    function renderMinesweeper(container) {
+        container.innerHTML = `
+            <div style="background:#c0c0c0; height:100%; padding:10px; display:flex; flex-direction:column;">
+                <div class="ms-header">
+                    <span id="ms-mines">010</span>
+                    <button style="font-size:20px; cursor:pointer;" onclick="initMinesweeper()">🙂</button>
+                    <span id="ms-time">000</span>
+                </div>
+                <div id="ms-grid" class="minesweeper-grid"></div>
+            </div>
+        `;
+        initMinesweeper();
+    }
+
+    let msBoard = [], msGameOver = false, msMines = 10;
+    function initMinesweeper() {
+        msGameOver = false; msBoard = [];
+        const grid = document.getElementById('ms-grid');
+        grid.style.gridTemplateColumns = `repeat(10, 30px)`;
+        grid.innerHTML = '';
+        
+        // Создаем доску
+        for(let y=0; y<10; y++) {
+            msBoard[y] = [];
+            for(let x=0; x<10; x++) {
+                msBoard[y][x] = { mine: false, revealed: false, flagged: false, count: 0, el: null };
+                const cell = document.createElement('div');
+                cell.className = 'ms-cell';
+                cell.onmousedown = (e) => handleMsClick(x, y, e);
+                grid.appendChild(cell);
+                msBoard[y][x].el = cell;
+            }
+        }
+        
+        // Расставляем мины
+        let placed = 0;
+        while(placed < msMines) {
+            let rx = Math.floor(Math.random()*10); let ry = Math.floor(Math.random()*10);
+            if(!msBoard[ry][rx].mine) { msBoard[ry][rx].mine = true; placed++; }
+        }
+        
+        // Считаем соседей
+        for(let y=0; y<10; y++) {
+            for(let x=0; x<10; x++) {
+                if(msBoard[y][x].mine) continue;
+                let c = 0;
+                for(let dy=-1; dy<=1; dy++) {
+                    for(let dx=-1; dx<=1; dx++) {
+                        if(y+dy>=0 && y+dy<10 && x+dx>=0 && x+dx<10 && msBoard[y+dy][x+dx].mine) c++;
+                    }
+                }
+                msBoard[y][x].count = c;
+            }
+        }
+    }
+
+    function handleMsClick(x, y, e) {
+        if(msGameOver) return;
+        const cell = msBoard[y][x];
+        if(e.button === 2) { // Правый клик
+            if(!cell.revealed) {
+                cell.flagged = !cell.flagged;
+                cell.el.innerText = cell.flagged ? '🚩' : '';
+            }
+            return;
+        }
+        if(cell.flagged || cell.revealed) return;
+        
+        if(cell.mine) {
+            cell.el.innerText = '💣'; cell.el.style.background = 'red';
+            msGameOver = true; alert('Вы проиграли!'); return;
+        }
+        
+        revealMs(x,y);
+    }
+
+    function revealMs(x,y) {
+        if(x<0 || x>=10 || y<0 || y>=10) return;
+        const cell = msBoard[y][x];
+        if(cell.revealed || cell.flagged) return;
+        
+        cell.revealed = true;
+        cell.el.classList.add('revealed');
+        const colors = ['','blue','green','red','darkblue','brown','cyan','black','gray'];
+        if(cell.count > 0) {
+            cell.el.innerText = cell.count;
+            cell.el.style.color = colors[cell.count];
+        } else {
+            // Раскрываем соседей
+            for(let dy=-1; dy<=1; dy++) {
+                for(let dx=-1; dx<=1; dx++) revealMs(x+dx, y+dy);
+            }
+        }
+    }
+    // Отключаем контекстное меню в сапере
+    document.addEventListener('contextmenu', e => { if(e.target.classList.contains('ms-cell')) e.preventDefault(); });
+
+    /* ==========================================================================
+       ПРИЛОЖЕНИЯ: ЗМЕЙКА (Liquid Modern)
+       ========================================================================== */
+    function renderSnake(container) {
+        container.innerHTML = `
+            <div class="snake-container">
+                <div class="snake-score-hud">Счет: <span id="sn-score">0</span></div>
+                <canvas id="snakeCanvas" width="400" height="400" class="snake-canvas"></canvas>
+            </div>
+        `;
+        setTimeout(initModernSnake, 100);
+    }
+
+    function initModernSnake() {
+        const canvas = document.getElementById('snakeCanvas');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        const gridSize = 20;
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 15};
+        let score = 0;
+        let dx = 1, dy = 0;
+        
+        if(window.snakeInterval) clearInterval(window.snakeInterval);
+        
+        document.addEventListener('keydown', function snakeKey(e) {
+            if(!document.getElementById('snakeCanvas')) { document.removeEventListener('keydown', snakeKey); return; }
+            if(e.key === 'ArrowUp' && dy !== 1) { dx = 0; dy = -1; }
+            if(e.key === 'ArrowDown' && dy !== -1) { dx = 0; dy = 1; }
+            if(e.key === 'ArrowLeft' && dx !== 1) { dx = -1; dy = 0; }
+            if(e.key === 'ArrowRight' && dx !== -1) { dx = 1; dy = 0; }
+        });
+
+        function draw() {
+            if(!document.getElementById('snakeCanvas')) { clearInterval(window.snakeInterval); return; }
+            
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            if(head.x < 0) head.x = 19; if(head.x > 19) head.x = 0;
+            if(head.y < 0) head.y = 19; if(head.y > 19) head.y = 0;
+            
+            for(let i=1; i<snake.length; i++) {
+                if(head.x === snake[i].x && head.y === snake[i].y) {
+                    alert('Игра окончена! Счет: ' + score);
+                    snake = [{x:10, y:10}]; score = 0; dx=1; dy=0;
+                    document.getElementById('sn-score').innerText = '0';
+                }
+            }
+            
+            snake.unshift(head);
+            if(head.x === food.x && head.y === food.y) {
+                score += 10; document.getElementById('sn-score').innerText = score;
+                food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+            } else { snake.pop(); }
+
+            // Отрисовка
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Еда (Светящаяся)
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ff4c4c'; ctx.fillStyle = '#ff4c4c';
+            ctx.beginPath(); ctx.arc(food.x*gridSize + gridSize/2, food.y*gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI*2); ctx.fill();
+            
+            // Змейка (Жидкий неон)
+            ctx.shadowColor = '#4cc2ff'; ctx.fillStyle = '#4cc2ff';
+            snake.forEach((part, index) => {
+                ctx.shadowBlur = index === 0 ? 20 : 10; // Голова светится сильнее
+                ctx.beginPath();
+                // Делаем хвост чуть тоньше
+                let radius = gridSize/2 - (index * 0.2); 
+                if(radius < 4) radius = 4;
+                ctx.arc(part.x*gridSize + gridSize/2, part.y*gridSize + gridSize/2, radius, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0; // Сброс
+        }
+        
+        window.snakeInterval = setInterval(draw, 100);
+    }
+
+    /* ==========================================================================
+       ПРИЛОЖЕНИЯ: ПАРАМЕТРЫ И СМЕНА ОБОЕВ
        ========================================================================== */
     function renderSettings(container) {
         container.innerHTML = `
             <div class="settings-body">
                 <div class="settings-sidebar">
-                    <div class="settings-tab active" onclick="switchSetTab(this, 'sys')">💻 Система</div>
-                    <div class="settings-tab" onclick="switchSetTab(this, 'pers')">🎨 Персонализация</div>
-                    <div class="settings-tab" onclick="switchSetTab(this, 'about')">ℹ️ О программе</div>
+                    <div class="settings-tab active" onclick="switchSetTab(this, 'pers')">🎨 Персонализация</div>
+                    <div class="settings-tab" onclick="switchSetTab(this, 'about')">ℹ️ О системе</div>
                 </div>
-                <div class="settings-content" id="set-content">
-                    <!-- Заполняется JS -->
-                </div>
+                <div class="settings-content" id="set-content"></div>
             </div>
         `;
-        // Вызываем сразу рендер вкладки Система
-        switchSetTab(container.querySelector('.settings-tab'), 'sys');
+        switchSetTab(container.querySelector('.settings-tab'), 'pers');
     }
 
     function switchSetTab(element, tabId) {
         document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
-        
         const content = document.getElementById('set-content');
-        if(!content) return;
-
-        if (tabId === 'sys') {
-            content.innerHTML = `
-                <h2 style="margin-top:0;">Система</h2>
-                <div class="settings-card">
-                    <h3>Дисплей</h3>
-                    <p>Разрешение: ${window.innerWidth}x${window.innerHeight}</p>
-                    <p>Платформа: ${navigator.platform}</p>
-                    <button class="btn-primary" onclick="alert('Калибровка выполнена успешно')">Калибровать</button>
-                </div>
-            `;
-        } else if (tabId === 'pers') {
+        
+        if (tabId === 'pers') {
+            // Встроенные обои + 3 новых
             const urls = [
-                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000',
-                'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000',
-                'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000',
-                'https://images.unsplash.com/photo-1506744626753-1fa44f101185?q=80&w=1000'
+                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000', // Абстракция 1
+                'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000', // Абстракция 2
+                'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000', // Абстракция 3
+                'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=1000', // Темный лес (НОВОЕ)
+                'https://images.unsplash.com/photo-1506744626753-1fa44f101185?q=80&w=1000', // Горы (НОВОЕ)
+                'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?q=80&w=1000'  // Неоновый город (НОВОЕ)
             ];
-            let gridHTML = urls.map(u => `<div class="wp-item" style="background-image:url('${u}')" onclick="document.body.style.backgroundImage='url(\\'${u}\\')'"></div>`).join('');
+            // Чтобы добавить свои обои насовсем - просто добавьте ссылку в массив `urls` выше.
+            
+            let gridHTML = urls.map(u => `<div class="wp-item" style="background-image:url('${u}')" onclick="setWallpaper('${u}')"></div>`).join('');
             
             content.innerHTML = `
                 <h2 style="margin-top:0;">Персонализация</h2>
                 <div class="settings-card">
-                    <h3>Фон рабочего стола</h3>
-                    <p>Выберите изображение для фона:</p>
-                    <div class="wallpaper-grid">${gridHTML}</div>
-                </div>
-                <div class="settings-card">
-                    <h3>Цветовая тема</h3>
-                    <button class="btn-primary" onclick="document.documentElement.style.setProperty('--accent', '#ff5722')">Оранжевая</button>
-                    <button class="btn-primary" onclick="document.documentElement.style.setProperty('--accent', '#4cc2ff')">Синяя</button>
-                    <button class="btn-primary" onclick="document.documentElement.style.setProperty('--accent', '#4caf50')">Зеленая</button>
+                    <h3>Обои рабочего стола</h3>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+                        ${gridHTML}
+                    </div>
+                    <h4>Загрузить свои обои (По ссылке):</h4>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="custom-wp" placeholder="Вставьте URL картинки" style="flex-grow:1; padding:8px; background:rgba(0,0,0,0.3); color:white; border:1px solid #555; border-radius:4px;">
+                        <button class="btn primary" onclick="setWallpaper(document.getElementById('custom-wp').value)">Применить</button>
+                    </div>
+                    <p style="font-size:11px; color:#aaa;">(Совет: найдите картинку в интернете, нажмите ПКМ -> Копировать URL картинки)</p>
                 </div>
             `;
         } else if (tabId === 'about') {
             content.innerHTML = `
-                <h2 style="margin-top:0;">О программе</h2>
-                <div class="settings-card" style="text-align:center;">
-                    <div style="font-size: 60px; margin-bottom:10px; color: var(--accent);">❖</div>
-                    <h2>WebOS 11 Pro</h2>
-                    <p>Версия 24H2 (Сборка ОС 22631)</p>
-                    <p>© 2026. Все права защищены.</p>
-                    <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
-                    <p style="font-size:12px; color:#aaa;">Это симуляция операционной системы на базе веб-технологий (HTML/CSS/JS). Полностью адаптирована для мобильных и десктопных браузеров.</p>
+                <h2 style="margin-top:0;">О системе</h2>
+                <div class="settings-card" style="text-align:cente;">
+                    <h1 style="color:var(--accent); margin-bottom:5px;">WeLLOS 2</h1>
+                    <p>Версия: Liquid Glass Edition (Только для ПК)</p>
+                    <p>Анимации и оптимизация на высшем уровне.</p>
                 </div>
             `;
         }
     }
 
-    /* ==========================================================================
-       ПРИЛОЖЕНИЕ: КАЛЬКУЛЯТОР
-       ========================================================================== */
-    function renderCalculator(container) {
-        container.innerHTML = `
-            <div class="calc-wrapper">
-                <div class="calc-display" id="calc-res">0</div>
-                <div class="calc-grid">
-                    <button class="calc-btn op" onclick="calcPress('C')">C</button>
-                    <button class="calc-btn op" onclick="calcPress('(')">(</button>
-                    <button class="calc-btn op" onclick="calcPress(')')">)</button>
-                    <button class="calc-btn op" onclick="calcPress('/')">÷</button>
-                    
-                    <button class="calc-btn" onclick="calcPress('7')">7</button>
-                    <button class="calc-btn" onclick="calcPress('8')">8</button>
-                    <button class="calc-btn" onclick="calcPress('9')">9</button>
-                    <button class="calc-btn op" onclick="calcPress('*')">×</button>
-                    
-                    <button class="calc-btn" onclick="calcPress('4')">4</button>
-                    <button class="calc-btn" onclick="calcPress('5')">5</button>
-                    <button class="calc-btn" onclick="calcPress('6')">6</button>
-                    <button class="calc-btn op" onclick="calcPress('-')">-</button>
-                    
-                    <button class="calc-btn" onclick="calcPress('1')">1</button>
-                    <button class="calc-btn" onclick="calcPress('2')">2</button>
-                    <button class="calc-btn" onclick="calcPress('3')">3</button>
-                    <button class="calc-btn op" onclick="calcPress('+')">+</button>
-                    
-                    <button class="calc-btn" onclick="calcPress('0')" style="grid-column: span 2; border-bottom-left-radius: 8px;">0</button>
-                    <button class="calc-btn" onclick="calcPress('.')">.</button>
-                    <button class="calc-btn eq" onclick="calcPress('=')" style="border-bottom-right-radius: 8px;">=</button>
-                </div>
-            </div>
-        `;
+    function setWallpaper(url) {
+        if(!url) return;
+        document.body.style.backgroundImage = `url('${url}')`;
     }
 
-    let calcExp = '';
-    function calcPress(key) {
-        const display = document.getElementById('calc-res');
-        if(!display) return;
-        
-        if (key === 'C') {
-            calcExp = ''; display.innerText = '0';
-        } else if (key === '=') {
-            try {
-                // Вычисляем безопасно через Function
-                let res = String(new Function('return ' + calcExp)());
-                if(res.length > 10) res = parseFloat(res).toPrecision(10);
-                display.innerText = res;
-                calcExp = res; // Позволяем продолжать вычисления
-            } catch (e) {
-                display.innerText = 'Ошибка'; calcExp = '';
-            }
-        } else {
-            calcExp += key;
-            display.innerText = calcExp;
-        }
+    // Заглушка для проводника, чтобы открывалось
+    function renderExplorer(container) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#aaa; margin-top:50px;">
+            <span style="font-size:40px;">📁</span><br>
+            В этой версии файлы создаются прямо на рабочем столе (ПКМ по рабочему столу).<br>
+            Загляните туда!
+        </div>`;
     }
 
-    /* ==========================================================================
-       ПРИЛОЖЕНИЕ: ИГРА ЗМЕЙКА (Canvas)
-       ========================================================================== */
-    function renderSnake(container) {
-        container.innerHTML = `
-            <div class="snake-container">
-                <div class="snake-score">Счет: <span id="snake-score-val">0</span></div>
-                <canvas id="snakeCanvas" width="300" height="300" class="snake-canvas"></canvas>
-                
-                <!-- Экранные кнопки для мобилок -->
-                <div class="mobile-dpad">
-                    <div class="dpad-btn d-up" onpointerdown="snakeDir(0, -1)">⬆️</div>
-                    <div class="dpad-btn d-left" onpointerdown="snakeDir(-1, 0)">⬅️</div>
-                    <div class="dpad-btn d-right" onpointerdown="snakeDir(1, 0)">➡️</div>
-                    <div class="dpad-btn d-down" onpointerdown="snakeDir(0, 1)">⬇️</div>
-                </div>
-            </div>
-        `;
-        
-        setTimeout(initSnake, 100); // Ждем пока canvas отрендерится
-    }
-
-    let snakeDx = 1, snakeDy = 0;
-    function snakeDir(dx, dy) {
-        // Защита от движения в противоположную сторону
-        if(snakeDx === -dx && dx !== 0) return;
-        if(snakeDy === -dy && dy !== 0) return;
-        snakeDx = dx; snakeDy = dy;
-    }
-
-    function initSnake() {
-        const canvas = document.getElementById('snakeCanvas');
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        const gridSize = 15;
-        let snake = [{x: 10, y: 10}];
-        let food = {x: 15, y: 15};
-        let score = 0;
-        snakeDx = 1; snakeDy = 0;
-        
-        // Очищаем старый интервал если был
-        if(window.snakeInterval) clearInterval(window.snakeInterval);
-        
-        // Управление клавиатурой (если на ПК)
-        document.addEventListener('keydown', function snakeKey(e) {
-            if(!document.getElementById('snakeCanvas')) {
-                document.removeEventListener('keydown', snakeKey); return;
-            }
-            if(e.key === 'ArrowUp') snakeDir(0, -1);
-            if(e.key === 'ArrowDown') snakeDir(0, 1);
-            if(e.key === 'ArrowLeft') snakeDir(-1, 0);
-            if(e.key === 'ArrowRight') snakeDir(1, 0);
-        });
-
-        function draw() {
-            if(!document.getElementById('snakeCanvas')) {
-                clearInterval(window.snakeInterval); return;
-            }
-            
-            // Двигаем змейку
-            const head = {x: snake[0].x + snakeDx, y: snake[0].y + snakeDy};
-            snake.unshift(head);
-            
-            // Проверка еды
-            if(head.x === food.x && head.y === food.y) {
-                score += 10;
-                document.getElementById('snake-score-val').innerText = score;
-                food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
-            } else {
-                snake.pop(); // удаляем хвост если не съели
-            }
-            
-            // Проверка стен (проход сквозь)
-            if(head.x < 0) head.x = 19;
-            if(head.x > 19) head.x = 0;
-            if(head.y < 0) head.y = 19;
-            if(head.y > 19) head.y = 0;
-            
-            // Проверка столкновения с собой
-            for(let i = 1; i < snake.length; i++) {
-                if(head.x === snake[i].x && head.y === snake[i].y) {
-                    alert('Игра окончена! Счет: ' + score);
-                    snake = [{x: 10, y: 10}]; score = 0; snakeDx=1; snakeDy=0;
-                    document.getElementById('snake-score-val').innerText = '0';
-                }
-            }
-
-            // Отрисовка
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#ff0000'; // Еда
-            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize-1, gridSize-1);
-            
-            ctx.fillStyle = '#4cc2ff'; // Змейка
-            snake.forEach(part => {
-                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize-1, gridSize-1);
-            });
-        }
-        
-        window.snakeInterval = setInterval(draw, 120);
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЕ: БРАУЗЕР
-       ========================================================================== */
-    function renderBrowser(container) {
-        container.innerHTML = `
-            <div style="display:flex; padding: 10px; background: #333; gap:10px;">
-                <input type="text" id="browser-url" value="https://www.bing.com" style="flex-grow:1; padding: 8px 15px; border-radius:20px; border:none; outline:none; background:#111; color:white;" placeholder="Введите URL (https://...)">
-                <button class="btn-primary" style="padding: 8px 15px; border-radius:20px;" onclick="goBrowser()">Перейти</button>
-            </div>
-            <div style="background:#ffcc00; color:black; padding:5px; font-size:11px; text-align:center;">
-                ⚠️ Многие современные сайты (Google, YouTube) блокируют встраивание (X-Frame-Options). Если сайт не грузится - это защита самого сайта. Используйте Bing или Википедию.
-            </div>
-            <iframe id="browser-frame" src="https://www.bing.com" style="width:100%; flex-grow:1; border:none; background:white;"></iframe>
-        `;
-    }
-    function goBrowser() {
-        let url = document.getElementById('browser-url').value;
-        if(!url.startsWith('http')) url = 'https://' + url;
-        document.getElementById('browser-frame').src = url; 
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЕ: PAINT (Рисование)
-       ========================================================================== */
-    function renderPaint(container) {
-        container.innerHTML = `
-            <div class="paint-toolbar" id="paint-tools">
-                <div class="color-btn active" style="background: black;" onclick="setPaintColor(this, 'black')"></div>
-                <div class="color-btn" style="background: red;" onclick="setPaintColor(this, 'red')"></div>
-                <div class="color-btn" style="background: blue;" onclick="setPaintColor(this, 'blue')"></div>
-                <div class="color-btn" style="background: green;" onclick="setPaintColor(this, 'green')"></div>
-                <div class="color-btn" style="background: yellow;" onclick="setPaintColor(this, 'yellow')"></div>
-                <div class="color-btn" style="background: white;" onclick="setPaintColor(this, 'white')"></div> <!-- Ластик -->
-                <button class="btn-primary" style="padding: 5px 10px; margin-left: auto;" onclick="clearCanvas()">Очистить</button>
-            </div>
-            <div class="paint-canvas-container">
-                <canvas id="paintCanvas" width="600" height="400" class="paint-canvas"></canvas>
-            </div>
-        `;
-        setTimeout(initPaint, 100);
-    }
-
-    let paintColor = 'black';
-    function setPaintColor(elem, color) {
-        document.querySelectorAll('#paint-tools .color-btn').forEach(e => e.classList.remove('active'));
-        elem.classList.add('active');
-        paintColor = color;
-    }
-
-    function clearCanvas() {
-        const canvas = document.getElementById('paintCanvas');
-        if(canvas) {
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0,0, canvas.width, canvas.height);
-        }
-    }
-
-    function initPaint() {
-        const canvas = document.getElementById('paintCanvas');
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        // Заливаем фон белым по умолчанию
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0,0, canvas.width, canvas.height);
-
-        let painting = false;
-
-        function startPosition(e) {
-            painting = true;
-            draw(e);
-        }
-        function endPosition() {
-            painting = false;
-            ctx.beginPath(); // Сбрасываем путь
-        }
-        function draw(e) {
-            if(!painting) return;
-            e.preventDefault(); // Предотвращаем скролл
-            
-            // Получаем координаты мыши ИЛИ пальца (touch)
-            const rect = canvas.getBoundingClientRect();
-            let clientX, clientY;
-            if(e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
-
-            ctx.lineWidth = paintColor === 'white' ? 20 : 5; // Ластик (белый) толще
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = paintColor;
-
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        // События мыши
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', endPosition);
-        canvas.addEventListener('mousemove', draw);
-        
-        // События тачскрина
-        canvas.addEventListener('touchstart', startPosition, {passive: false});
-        canvas.addEventListener('touchend', endPosition);
-        canvas.addEventListener('touchmove', draw, {passive: false});
-    }
+    // Инициализация
+    renderDesktop();
+    setupTbSliders();
 
 </script>
 </body>
 </html>
-    
