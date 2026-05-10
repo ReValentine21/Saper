@@ -15,9 +15,8 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:#020202;
-overflow:hidden;
-height:100vh;
+background:
+radial-gradient(circle at top,#0f1720,#020202 70%);
 }
 
 #app{
@@ -63,20 +62,27 @@ text-shadow:
 0 0 30px #00fff7;
 }
 
+
 .btn{
 width:min(420px,90vw);
-padding:18px;
-margin:10px;
+padding:20px;
+margin:12px;
 border:none;
 border-radius:22px;
-background:linear-gradient(180deg,#171717,#0a0a0a);
+background:
+linear-gradient(
+180deg,
+rgba(0,255,255,.15),
+rgba(0,255,255,.05)
+);
 color:white;
-font-size:1.1rem;
-font-weight:bold;
+font-size:1.2rem;
+font-weight:900;
+letter-spacing:1px;
+border:1px solid rgba(0,255,255,.35);
 box-shadow:
-0 0 20px rgba(0,255,255,.15),
-inset 0 0 10px rgba(255,255,255,.06);
-border:1px solid rgba(0,255,255,.2);
+0 0 25px rgba(0,255,255,.2),
+inset 0 0 15px rgba(255,255,255,.08);
 }
 
 .song{
@@ -90,7 +96,12 @@ box-shadow:0 0 20px rgba(0,0,0,.4);
 }
 
 .song h2{
-margin-bottom:5px;
+color:white;
+font-size:2rem;
+}
+
+.song p{
+color:#b8b8b8;
 }
 
 #ui{
@@ -197,6 +208,10 @@ display:none;
 <button class="btn" onclick="openSongs()">ИГРАТЬ</button>
 </div>
 
+<button class="btn" onclick="openSettings()">
+НАСТРОЙКИ
+</button>
+
 <div class="screen" id="songs">
 <div class="title">SONGS</div>
 
@@ -222,6 +237,38 @@ display:none;
 
 <button class="btn" onclick="show('menu')">НАЗАД</button>
 </div>
+
+<div class="screen" id="settings">
+
+<div class="title">
+SETTINGS
+</div>
+
+<div class="song">
+
+<label>
+<input type="checkbox" id="effects" checked>
+Эффекты
+</label>
+
+<br><br>
+
+<label>
+<input type="checkbox" id="spam">
+Spam Mode
+</label>
+
+</div>
+
+<button class="btn" onclick="show('menu')">
+НАЗАД
+</button>
+
+</div>
+
+function openSettings(){
+show('settings');
+}
 
 <div class="screen" id="gameover">
 <div class="title">GAME OVER</div>
