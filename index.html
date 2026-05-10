@@ -1,333 +1,828 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Neon Rhythm v2: Beatmap Edition</title>
-    <style>
-        :root {
-            --primary-color: #0ff;
-            --bg-color: #0a0a0a;
-            --text-color: #fff;
-            --track-color: rgba(255, 255, 255, 0.08);
-            --hit-zone: rgba(0, 255, 150, 0.2);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NEON RHYTHM X</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+<style>
+:root{
+--bg:#050505;
+--neon:#00fff7;
+--pink:#ff00ea;
+--green:#00ff88;
+--red:#ff3c3c;
+--glass:rgba(255,255,255,.06);
+}
 
-        #app-container {
-            position: relative;
-            width: 600px;
-            height: 850px;
-            background: #000;
-            border: 3px solid var(--primary-color);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-            border-radius: 15px;
-            overflow: hidden;
-        }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
+-webkit-tap-highlight-color:transparent;
+}
 
-        .screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.9); z-index: 10; padding: 20px;
-        }
-        .screen.active { display: flex; }
+body{
+background:
+radial-gradient(circle at top,#111 0%,#050505 70%);
+overflow:hidden;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
+}
 
-        h1 { font-size: 3.5rem; color: var(--primary-color); text-shadow: 0 0 15px var(--primary-color); margin-bottom: 2rem; }
-        .btn {
-            background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color);
-            padding: 12px 30px; font-size: 1.2rem; margin: 8px; cursor: pointer; border-radius: 8px;
-            transition: 0.3s; width: 280px; text-transform: uppercase; font-weight: bold;
-        }
-        .btn:hover { background: var(--primary-color); color: #000; box-shadow: 0 0 20px var(--primary-color); }
+#gameContainer{
+position:relative;
+width:95vw;
+max-width:1000px;
+height:95vh;
+border-radius:25px;
+overflow:hidden;
+background:#000;
+border:2px solid var(--neon);
+box-shadow:
+0 0 30px rgba(0,255,255,.25),
+inset 0 0 30px rgba(0,255,255,.15);
+}
 
-        /* Песни */
-        .song-list { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .song-card {
-            background: #111; border: 1px solid #333; width: 80%; padding: 15px; margin: 5px;
-            cursor: pointer; border-radius: 10px; transition: 0.2s; text-align: center;
-        }
-        .song-card:hover { border-color: var(--primary-color); background: #1a1a1a; }
+canvas{
+width:100%;
+height:100%;
+display:block;
+}
 
-        /* Настройки */
-        .key-input {
-            width: 100px; height: 50px; background: #222; border: 2px solid #444; color: #fff;
-            text-align: center; font-size: 1rem; border-radius: 5px; margin: 10px; cursor: pointer;
-        }
-        .key-input:focus { border-color: var(--primary-color); outline: none; }
+.screen{
+position:absolute;
+inset:0;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:rgba(0,0,0,.88);
+backdrop-filter:blur(10px);
+z-index:10;
+}
 
-        canvas { display: block; width: 100%; height: 100%; }
+.screen.active{
+display:flex;
+}
 
-        #game-ui {
-            position: absolute; top: 20px; width: 100%; display: none;
-            justify-content: space-around; font-size: 1.8rem; font-weight: bold; z-index: 5; pointer-events: none;
-        }
-        #combo-tag { color: #ff00ff; font-size: 2.5rem; text-shadow: 0 0 10px #ff00ff; }
+h1{
+font-size:5rem;
+color:var(--neon);
+text-shadow:0 0 25px var(--neon);
+margin-bottom:30px;
+animation:pulse 2s infinite;
+}
 
-        #hit-feedback {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 4rem; font-weight: 900; opacity: 0; pointer-events: none; z-index: 6;
-        }
-    </style>
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.03)}
+100%{transform:scale(1)}
+}
+
+.btn{
+width:320px;
+padding:16px;
+margin:10px;
+border:none;
+border-radius:16px;
+font-size:1.1rem;
+font-weight:bold;
+cursor:pointer;
+background:var(--glass);
+color:white;
+border:1px solid rgba(255,255,255,.1);
+transition:.25s;
+backdrop-filter:blur(12px);
+}
+
+.btn:hover{
+transform:translateY(-3px) scale(1.03);
+background:rgba(0,255,255,.15);
+box-shadow:0 0 20px rgba(0,255,255,.3);
+}
+
+.song{
+width:85%;
+padding:20px;
+margin:10px;
+border-radius:20px;
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.08);
+cursor:pointer;
+transition:.25s;
+}
+
+.song:hover{
+transform:scale(1.02);
+border-color:var(--neon);
+}
+
+.song h2{
+margin-bottom:6px;
+}
+
+#ui{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+padding:18px;
+display:none;
+justify-content:space-between;
+z-index:5;
+pointer-events:none;
+}
+
+.uiBox{
+background:rgba(0,0,0,.45);
+padding:12px 18px;
+border-radius:14px;
+backdrop-filter:blur(10px);
+border:1px solid rgba(255,255,255,.08);
+font-size:1.2rem;
+}
+
+#combo{
+font-size:2rem;
+color:var(--pink);
+text-shadow:0 0 12px var(--pink);
+}
+
+#accuracy{
+color:var(--green);
+}
+
+#hpBar{
+position:absolute;
+top:0;
+left:0;
+height:8px;
+background:linear-gradient(90deg,#00ff88,#00fff7);
+z-index:6;
+transition:.2s;
+}
+
+#feedback{
+position:absolute;
+top:42%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:5rem;
+font-weight:900;
+opacity:0;
+z-index:9;
+pointer-events:none;
+transition:.15s;
+}
+
+#countdown{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:8rem;
+font-weight:900;
+z-index:9;
+display:none;
+text-shadow:0 0 20px white;
+}
+
+#exitBtn{
+position:absolute;
+bottom:20px;
+right:20px;
+z-index:10;
+padding:12px 22px;
+border:none;
+border-radius:12px;
+background:rgba(255,0,0,.2);
+color:white;
+cursor:pointer;
+font-weight:bold;
+display:none;
+}
+
+.setting{
+margin:15px;
+font-size:1.1rem;
+}
+
+input[type=checkbox]{
+transform:scale(1.4);
+margin-left:10px;
+}
+
+.mobileHint{
+position:absolute;
+bottom:10px;
+width:100%;
+text-align:center;
+font-size:.9rem;
+opacity:.5;
+}
+
+@media(max-width:700px){
+
+h1{
+font-size:3rem;
+}
+
+.btn{
+width:85%;
+}
+
+.song{
+width:92%;
+}
+
+}
+</style>
 </head>
 <body>
 
-<div id="app-container">
-    <div id="game-ui">
-        <div>Счет: <span id="score">0</span></div>
-        <div id="combo-tag"><span id="combo">0</span>x</div>
-    </div>
-    <div id="hit-feedback">PERFECT</div>
+<div id="gameContainer">
 
-    <canvas id="gameCanvas" width="600" height="850"></canvas>
+<div id="hpBar"></div>
 
-    <div id="screen-menu" class="screen active">
-        <h1>NEON RHYTHM</h1>
-        <button class="btn" onclick="showScreen('screen-songs')">Выбрать песню</button>
-        <button class="btn" onclick="showScreen('screen-settings')">Настройки клавиш</button>
-    </div>
+<div id="ui">
+<div class="uiBox">
+Счёт: <span id="score">0</span>
+</div>
 
-    <div id="screen-songs" class="screen">
-        <h2>Выберите уровень</h2>
-        <div class="song-list">
-            <div class="song-card" onclick="startLevel('slow')">
-                <h3>Slow Melody</h3>
-                <p>Сложность: Легко</p>
-            </div>
-            <div class="song-card" onclick="startLevel('cyber')">
-                <h3>Cyberpunk Night</h3>
-                <p>Сложность: Средне</p>
-            </div>
-            <div class="song-card" onclick="startLevel('rush-e')">
-                <h3 style="color: #ff4444;">RUSH E</h3>
-                <p>Сложность: БЕЗУМИЕ</p>
-            </div>
-        </div>
-        <button class="btn" onclick="showScreen('screen-menu')">Назад</button>
-    </div>
+<div class="uiBox">
+Комбо: <span id="combo">0</span>
+</div>
 
-    <div id="screen-settings" class="screen">
-        <h2>Настройки управления</h2>
-        <p>Нажмите на поле и любую клавишу (включая стрелочки)</p>
-        <div>
-            <input type="text" class="key-input" id="key0" readonly>
-            <input type="text" class="key-input" id="key1" readonly>
-            <input type="text" class="key-input" id="key2" readonly>
-            <input type="text" class="key-input" id="key3" readonly>
-        </div>
-        <button class="btn" onclick="saveSettings()">Сохранить</button>
-    </div>
+<div class="uiBox">
+Точность: <span id="accuracy">100%</span>
+</div>
+</div>
 
-    <div id="screen-gameover" class="screen">
-        <h1>РЕЗУЛЬТАТ</h1>
-        <h2 id="final-res">Счет: 0</h2>
-        <button class="btn" onclick="showScreen('screen-songs')">К песням</button>
-        <button class="btn" onclick="showScreen('screen-menu')">В меню</button>
-    </div>
+<div id="feedback"></div>
+<div id="countdown"></div>
+
+<button id="exitBtn">ВЫЙТИ</button>
+
+<canvas id="game" width="1000" height="900"></canvas>
+
+<!-- MENU -->
+
+<div class="screen active" id="menu">
+
+<h1>NEON RHYTHM X</h1>
+
+<button class="btn" onclick="openSongs()">
+ИГРАТЬ
+</button>
+
+<button class="btn" onclick="openSettings()">
+НАСТРОЙКИ
+</button>
+
+<div class="mobileHint">
+Автоопределение телефона и ПК
+</div>
+
+</div>
+
+<!-- SONGS -->
+
+<div class="screen" id="songs">
+
+<h1>ПЕСНИ</h1>
+
+<div class="song" onclick="startGame(0)">
+<h2>1. Fur Elise</h2>
+<p>Очень легко</p>
+</div>
+
+<div class="song" onclick="startGame(1)">
+<h2>2. River Flows In You</h2>
+<p>Легко</p>
+</div>
+
+<div class="song" onclick="startGame(2)">
+<h2>3. Experience</h2>
+<p>Средне</p>
+</div>
+
+<div class="song" onclick="startGame(3)">
+<h2>4. Interstellar</h2>
+<p>Сложно</p>
+</div>
+
+<div class="song" onclick="startGame(4)">
+<h2>5. Rush E</h2>
+<p>Очень сложно</p>
+</div>
+
+<div class="song" onclick="startGame(5)">
+<h2>6. La Campanella</h2>
+<p>БЕЗУМИЕ</p>
+</div>
+
+<button class="btn" onclick="show('menu')">
+НАЗАД
+</button>
+
+</div>
+
+<!-- SETTINGS -->
+
+<div class="screen" id="settings">
+
+<h1>НАСТРОЙКИ</h1>
+
+<div class="setting">
+Эффекты
+<input type="checkbox" id="effects" checked>
+</div>
+
+<div class="setting">
+Screen Shake
+<input type="checkbox" id="shake" checked>
+</div>
+
+<div class="setting">
+Spam Mode
+<input type="checkbox" id="spam">
+</div>
+
+<button class="btn" onclick="show('menu')">
+СОХРАНИТЬ
+</button>
+
+</div>
+
+<!-- GAME OVER -->
+
+<div class="screen" id="gameover">
+
+<h1>GAME OVER</h1>
+
+<h2 id="finalScore"></h2>
+
+<button class="btn" onclick="openSongs()">
+ЕЩЁ РАЗ
+</button>
+
+<button class="btn" onclick="show('menu')">
+МЕНЮ
+</button>
+
+</div>
+
 </div>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
 
-    // Настройки увеличены для "удобства"
-    const config = {
-        tracks: 4,
-        hitY: 720,              // Линия нажатия
-        hitWindowPerfect: 40,   // Хитбокс увеличен
-        hitWindowGood: 80,      // Хитбокс увеличен
-        noteRadius: 35,         // Кругляшки стали больше
-        scrollSpeed: 7          // Скорость падения
-    };
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-    let controls = ['d', 'f', 'j', 'k'];
-    let isPlaying = false;
-    let score = 0, combo = 0, maxCombo = 0;
-    let notes = [], particles = [];
-    let startTime = 0;
-    let currentBeatmap = [];
-    let audioCtx;
+const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // --- БИТМАПЫ (ПЕСНИ) ---
-    // Формат: { time: мс от начала, track: 0-3 }
-    const levels = {
-        'slow': [
-            {time: 1000, t:0}, {time: 2000, t:1}, {time: 3000, t:2}, {time: 4000, t:3},
-            {time: 5000, t:1}, {time: 5500, t:2}, {time: 7000, t:0}, {time: 8000, t:3}
-        ],
-        'cyber': [],
-        'rush-e': []
-    };
+const tracks = 4;
+const trackWidth = canvas.width / tracks;
+const hitY = canvas.height - 180;
 
-    // Генерация Rush E (автоматическая для примера)
-    for(let i=0; i<200; i++) {
-        levels['rush-e'].push({time: 500 + (i*150), t: i % 4});
-        if(i % 5 === 0) levels['rush-e'].push({time: 500 + (i*150), t: (i+2) % 4});
-    }
-    // Генерация Cyber
-    for(let i=0; i<100; i++) {
-        levels['cyber'].push({time: 500 + (i*400), t: Math.floor(Math.random()*4)});
-    }
+let notes = [];
+let particles = [];
 
-    // --- ЛОГИКА ЭКРАНОВ ---
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('game-ui').style.display = 'none';
-        if(id === 'screen-settings') {
-            controls.forEach((k, i) => document.getElementById('key'+i).value = k.replace('Arrow', '↑'));
-        }
-    }
+let score = 0;
+let combo = 0;
+let misses = 0;
+let hits = 0;
 
-    // Настройка клавиш (поддержка стрелочек)
-    document.querySelectorAll('.key-input').forEach((input, i) => {
-        input.addEventListener('keydown', (e) => {
-            e.preventDefault();
-            controls[i] = e.key;
-            input.value = e.key.replace('ArrowLeft', '←').replace('ArrowRight', '→').replace('ArrowUp', '↑').replace('ArrowDown', '↓');
-        });
-    });
+let hp = 100;
 
-    function saveSettings() { showScreen('screen-menu'); }
+let playing = false;
 
-    // --- ИГРОВОЙ ПРОЦЕСС ---
-    function startLevel(levelKey) {
-        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        isPlaying = true;
-        score = 0; combo = 0; maxCombo = 0;
-        notes = [];
-        // Копируем битмап, чтобы не испортить оригинал
-        currentBeatmap = JSON.parse(JSON.stringify(levels[levelKey]));
-        startTime = performance.now();
-        
-        document.getElementById('game-ui').style.display = 'flex';
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        
-        requestAnimationFrame(gameLoop);
-    }
+let effects = true;
+let shake = true;
+let spamMode = false;
 
-    class Note {
-        constructor(track, spawnTime) {
-            this.track = track;
-            this.spawnTime = spawnTime;
-            this.x = (track * 150) + 75;
-            this.y = -100;
-            this.active = true;
-            this.color = ['#0ff', '#f0f', '#0f0', '#ff0'][track];
-        }
-        update(elapsed) {
-            // Позиция зависит от времени: (текущее_время - время_когда_должна_быть_на_линии)
-            // Но для простоты оставим линейное падение:
-            this.y = config.hitY - (this.spawnTime - elapsed) * (config.scrollSpeed / 10);
-            
-            if(this.y > canvas.height + 50 && this.active) {
-                this.active = false;
-                handleHit('miss');
-            }
-        }
-        draw() {
-            if(!this.active) return;
-            ctx.save();
-            ctx.shadowBlur = 20; ctx.shadowColor = this.color;
-            ctx.fillStyle = this.color;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, config.noteRadius, 0, Math.PI*2);
-            ctx.fill();
-            ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.restore();
-        }
-    }
+let controls = ["d","f","j","k"];
 
-    function handleHit(type) {
-        const feedback = document.getElementById('hit-feedback');
-        feedback.style.opacity = '1';
-        if(type === 'miss') {
-            combo = 0;
-            feedback.innerText = 'MISS'; feedback.style.color = 'red';
-        } else {
-            combo++;
-            if(combo > maxCombo) maxCombo = combo;
-            score += (type === 'perfect' ? 100 : 50) * (1 + Math.floor(combo/10));
-            feedback.innerText = type.toUpperCase();
-            feedback.style.color = type === 'perfect' ? '#0f0' : '#ff0';
-        }
-        document.getElementById('score').innerText = score;
-        document.getElementById('combo').innerText = combo;
-        setTimeout(() => feedback.style.opacity = '0', 200);
-    }
+const songs = [
+{speed:4,count:40},
+{speed:5,count:60},
+{speed:6,count:90},
+{speed:7,count:120},
+{speed:9,count:180},
+{speed:11,count:250}
+];
 
-    window.addEventListener('keydown', (e) => {
-        if(!isPlaying) return;
-        const trackIdx = controls.indexOf(e.key);
-        if(trackIdx === -1) return;
+function randomTrack(){
+return Math.floor(Math.random()*4);
+}
 
-        // Ищем ноту на этой дорожке
-        const hitNote = notes.find(n => n.active && n.track === trackIdx && Math.abs(n.y - config.hitY) < config.hitWindowGood);
-        
-        if(hitNote) {
-            const dist = Math.abs(hitNote.y - config.hitY);
-            hitNote.active = false;
-            handleHit(dist < config.hitWindowPerfect ? 'perfect' : 'good');
-            playTone(trackIdx);
-        } else {
-            handleHit('miss');
-        }
-    });
+function buildLevel(data){
 
-    function playTone(t) {
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.frequency.value = [261, 329, 392, 523][t];
-        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-    }
+notes=[];
 
-    function gameLoop(now) {
-        if(!isPlaying) return;
-        const elapsed = now - startTime;
+for(let i=0;i<data.count;i++){
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+notes.push({
+track:randomTrack(),
+y:-i*220,
+hit:false,
+speed:data.speed
+});
 
-        // Рисуем дорожки (Исправлено: все серые)
-        for(let i=0; i<4; i++) {
-            ctx.fillStyle = 'rgba(255,255,255,0.05)';
-            ctx.fillRect(i*150, 0, 148, canvas.height);
-            ctx.fillStyle = 'rgba(255,255,255,0.2)';
-            ctx.font = "20px Arial";
-            ctx.fillText(controls[i].replace('Arrow', '').toUpperCase(), i*150+65, 820);
-        }
+}
 
-        // Рисуем зону нажатия
-        ctx.fillStyle = "rgba(0, 255, 255, 0.1)";
-        ctx.fillRect(0, config.hitY - config.hitWindowGood, canvas.width, config.hitWindowGood*2);
-        ctx.strokeStyle = "var(--primary-color)";
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(0, config.hitY); ctx.lineTo(canvas.width, config.hitY); ctx.stroke();
+}
 
-        // Спавн нот из битмапа
-        if(currentBeatmap.length > 0 && currentBeatmap[0].time < elapsed + 1500) {
-            const b = currentBeatmap.shift();
-            notes.push(new Note(b.t, b.time));
-        }
+function show(id){
 
-        // Обновление нот
-        notes.forEach(n => { n.update(elapsed); n.draw(); });
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active");
+});
 
-        // Проверка конца
-        if(currentBeatmap.length === 0 && notes.filter(n => n.active).length === 0) {
-            setTimeout(() => {
-                isPlaying = false;
-                document.getElementById('final-res').innerText = "Счет: " + score;
-                showScreen('screen-gameover');
-            }, 2000);
-        }
+document.getElementById(id).classList.add("active");
 
-        if(isPlaying) requestAnimationFrame(gameLoop);
-    }
+}
+
+function openSongs(){
+show("songs");
+}
+
+function openSettings(){
+show("settings");
+}
+
+function countdown(cb){
+
+const c = document.getElementById("countdown");
+
+c.style.display="block";
+
+let n = 3;
+
+c.innerText = n;
+
+const interval = setInterval(()=>{
+
+n--;
+
+if(n===0){
+c.innerText="START!";
+}else{
+c.innerText=n;
+}
+
+if(n<0){
+
+clearInterval(interval);
+
+c.style.display="none";
+
+cb();
+
+}
+
+},1000);
+
+}
+
+function startGame(id){
+
+effects = document.getElementById("effects").checked;
+shake = document.getElementById("shake").checked;
+spamMode = document.getElementById("spam").checked;
+
+show("");
+
+countdown(()=>{
+
+playing=true;
+
+score=0;
+combo=0;
+misses=0;
+hits=0;
+hp=100;
+
+buildLevel(songs[id]);
+
+document.getElementById("ui").style.display="flex";
+document.getElementById("exitBtn").style.display="block";
+
+loop();
+
+});
+
+}
+
+document.getElementById("exitBtn").onclick=()=>{
+
+playing=false;
+
+document.getElementById("ui").style.display="none";
+document.getElementById("exitBtn").style.display="none";
+
+show("songs");
+
+};
+
+function feedback(text,color){
+
+const el = document.getElementById("feedback");
+
+el.innerText=text;
+el.style.color=color;
+el.style.opacity=1;
+el.style.transform="translate(-50%,-50%) scale(1.3)";
+
+setTimeout(()=>{
+
+el.style.opacity=0;
+el.style.transform="translate(-50%,-50%) scale(1)";
+
+},180);
+
+}
+
+function hit(track){
+
+if(!playing)return;
+
+let found = false;
+
+for(let n of notes){
+
+if(n.hit) continue;
+
+if(n.track!==track) continue;
+
+const dist = Math.abs(n.y-hitY);
+
+if(dist<90){
+
+n.hit=true;
+
+found=true;
+
+hits++;
+
+combo++;
+
+score += 100 * combo;
+
+if(dist<40){
+feedback("PERFECT","#00ff88");
+}else{
+feedback("GOOD","#ffe600");
+}
+
+spawnParticles(n.x,hitY,n.track);
+
+break;
+
+}
+
+}
+
+if(!found && !spamMode){
+
+combo=0;
+
+feedback("MISS","#ff3c3c");
+
+misses++;
+
+hp-=10;
+
+}
+
+updateUI();
+
+}
+
+window.addEventListener("keydown",e=>{
+
+const idx = controls.indexOf(e.key.toLowerCase());
+
+if(idx!==-1){
+
+hit(idx);
+
+}
+
+});
+
+canvas.addEventListener("touchstart",e=>{
+
+if(!mobile)return;
+
+const rect = canvas.getBoundingClientRect();
+
+for(let touch of e.touches){
+
+const x = touch.clientX - rect.left;
+
+const track = Math.floor(x / (rect.width/4));
+
+hit(track);
+
+}
+
+});
+
+function spawnParticles(x,y,t){
+
+if(!effects)return;
+
+for(let i=0;i<15;i++){
+
+particles.push({
+x,y,
+vx:(Math.random()-.5)*8,
+vy:(Math.random()-.5)*8,
+life:30,
+color:["#00fff7","#ff00ea","#00ff88","#ffe600"][t]
+});
+
+}
+
+}
+
+function drawTracks(){
+
+for(let i=0;i<4;i++){
+
+ctx.fillStyle="rgba(255,255,255,.05)";
+ctx.fillRect(i*trackWidth,0,trackWidth-2,canvas.height);
+
+if(!mobile){
+
+ctx.fillStyle="white";
+ctx.font="32px Arial";
+ctx.fillText(
+controls[i].toUpperCase(),
+i*trackWidth+100,
+canvas.height-40
+);
+
+}
+
+}
+
+ctx.fillStyle="rgba(0,255,255,.1)";
+ctx.fillRect(0,hitY-60,canvas.width,120);
+
+ctx.strokeStyle="#00fff7";
+ctx.lineWidth=4;
+
+ctx.beginPath();
+ctx.moveTo(0,hitY);
+ctx.lineTo(canvas.width,hitY);
+ctx.stroke();
+
+}
+
+function drawNotes(){
+
+for(let n of notes){
+
+if(n.hit) continue;
+
+n.y += n.speed;
+
+n.x = n.track*trackWidth + trackWidth/2;
+
+ctx.beginPath();
+
+ctx.fillStyle=[
+"#00fff7",
+"#ff00ea",
+"#00ff88",
+"#ffe600"
+][n.track];
+
+ctx.shadowBlur=25;
+ctx.shadowColor=ctx.fillStyle;
+
+ctx.arc(n.x,n.y,40,0,Math.PI*2);
+
+ctx.fill();
+
+if(n.y>hitY+120){
+
+n.hit=true;
+
+combo=0;
+
+misses++;
+
+hp-=10;
+
+feedback("MISS","#ff3c3c");
+
+updateUI();
+
+}
+
+}
+
+}
+
+function drawParticles(){
+
+for(let i=particles.length-1;i>=0;i--){
+
+const p = particles[i];
+
+p.x += p.vx;
+p.y += p.vy;
+p.life--;
+
+ctx.fillStyle=p.color;
+ctx.globalAlpha=p.life/30;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,6,0,Math.PI*2);
+ctx.fill();
+
+ctx.globalAlpha=1;
+
+if(p.life<=0){
+
+particles.splice(i,1);
+
+}
+
+}
+
+}
+
+function updateUI(){
+
+document.getElementById("score").innerText=score;
+
+document.getElementById("combo").innerText=combo;
+
+const acc = hits+misses===0
+?100
+:Math.floor(hits/(hits+misses)*100);
+
+document.getElementById("accuracy").innerText=acc+"%";
+
+document.getElementById("hpBar").style.width=hp+"%";
+
+}
+
+function loop(){
+
+if(!playing)return;
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+if(shake && combo>15){
+
+canvas.style.transform=`
+translate(
+${(Math.random()-.5)*3}px,
+${(Math.random()-.5)*3}px
+)
+`;
+
+}else{
+
+canvas.style.transform="translate(0,0)";
+
+}
+
+drawTracks();
+drawNotes();
+drawParticles();
+
+if(hp<=0){
+
+playing=false;
+
+document.getElementById("ui").style.display="none";
+document.getElementById("exitBtn").style.display="none";
+
+document.getElementById("finalScore").innerText=
+`Счёт: ${score}`;
+
+show("gameover");
+
+return;
+
+}
+
+requestAnimationFrame(loop);
+
+}
+
 </script>
+
 </body>
 </html>
