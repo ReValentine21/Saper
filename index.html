@@ -2,1175 +2,688 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WeLLOS 2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Rhythm: Piano Tiles PC</title>
     <style>
-        /* ==========================================
-           LIQUID GLASS & БАЗОВЫЕ НАСТРОЙКИ
-        ========================================== */
+        /* =========================================
+           CSS СТИЛИ И ИНТЕРФЕЙС
+           ========================================= */
         :root {
-            --accent: #4cc2ff;
-            --glass-bg: rgba(30, 30, 30, 0.55);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --glass-blur: blur(25px);
-            --text-main: #ffffff;
-            
-            /* Настройки панели задач (изменяемые) */
-            --tb-height: 50px;
-            --tb-icon-size: 40px;
-            --tb-gap: 8px;
+            --primary-color: #0ff;
+            --bg-color: #111;
+            --text-color: #fff;
+            --track-bg: rgba(255, 255, 255, 0.05);
+            --track-border: rgba(0, 255, 255, 0.2);
+            --hit-zone: rgba(0, 255, 0, 0.3);
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
-
-        body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
-            background-color: #0f0f1a;
-            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564');
-            background-size: cover; background-position: center;
-            color: var(--text-main); transition: background-image 0.5s ease;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        input, textarea { user-select: text; }
-
-        /* Скроллбары */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
-
-        /* ==========================================
-           РАБОЧИЙ СТОЛ И ВЫДЕЛЕНИЕ
-        ========================================== */
-        #desktop {
-            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - var(--tb-height));
-            display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
-            padding: 10px; gap: 15px; z-index: 1;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
-        .desktop-icon {
-            width: 85px; height: 90px; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start; border-radius: 8px;
-            cursor: pointer; padding-top: 8px; border: 1px solid transparent;
-            transition: background 0.1s;
+        #app-container {
+            position: relative;
+            width: 600px;
+            height: 800px;
+            background: #000;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .desktop-icon:hover { background: rgba(255, 255, 255, 0.1); }
-        .desktop-icon.selected { background: rgba(76, 194, 255, 0.3); border-color: rgba(76, 194, 255, 0.5); }
+
+        /* Экраны */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        /* Кнопки */
+        .btn {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 250px;
+        }
+
+        .btn:hover {
+            background: var(--primary-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        /* Настройки клавиш */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .key-bind {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .key-bind label {
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+
+        .key-input {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+            text-align: center;
+            background: #222;
+            border: 2px solid #555;
+            color: #fff;
+            border-radius: 10px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .key-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+            outline: none;
+        }
+
+        /* Игровой холст */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Игровой UI (Счет, Комбо) */
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .ui-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 5px #000;
+        }
+
+        #combo {
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            font-size: 2rem;
+        }
         
-        .desktop-icon span.icon { font-size: 38px; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; }
-        .desktop-icon span.title { font-size: 12px; text-shadow: 1px 1px 2px #000; text-align: center; word-wrap: break-word; width: 100%; padding: 0 5px; pointer-events: none; }
-        .desktop-icon input.rename-input { width: 100%; font-size: 12px; text-align: center; background: white; color: black; border: none; outline: none; border-radius: 2px; }
-
-        #selection-box {
-            position: absolute; border: 1px solid rgba(76, 194, 255, 0.8);
-            background: rgba(76, 194, 255, 0.3); display: none; z-index: 10; pointer-events: none;
-        }
-
-        /* ==========================================
-           КОНТЕКСТНОЕ МЕНЮ
-        ========================================== */
-        #context-menu {
-            position: absolute; background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px 0;
-            min-width: 200px; display: none; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .context-item { padding: 8px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .context-item:hover { background: rgba(255,255,255,0.1); }
-        .context-separator { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
-
-        /* ==========================================
-           ПАНЕЛЬ ЗАДАЧ (Taskbar)
-        ========================================== */
-        #taskbar {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: var(--tb-height);
-            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            display: flex; align-items: center; justify-content: center; z-index: 10000;
-            border-top: 1px solid var(--glass-border); transition: height 0.2s; cursor: pointer; /* Для открытия настроек ТБ */
+        #hit-feedback {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            pointer-events: none;
+            z-index: 6;
         }
         
-        #start-btn {
-            width: var(--tb-icon-size); height: var(--tb-icon-size); border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; margin-right: 10px;
-        }
-        #start-btn:hover { background: rgba(255, 255, 255, 0.15); }
-
-        .taskbar-apps { display: flex; gap: var(--tb-gap); pointer-events: none; } /* Клики пропускаем на сами иконки */
-        .taskbar-icon {
-            width: var(--tb-icon-size); height: var(--tb-icon-size); border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; position: relative; pointer-events: auto;
-            transition: 0.2s;
-        }
-        .taskbar-icon:hover { background: rgba(255, 255, 255, 0.15); }
-        .taskbar-icon.active { background: rgba(255, 255, 255, 0.2); }
-        .taskbar-icon.active::after {
-            content: ''; position: absolute; bottom: 2px; width: 40%; height: 3px;
-            background: var(--accent); border-radius: 2px;
-        }
-
-        #system-tray {
-            position: absolute; right: 15px; display: flex; align-items: center; gap: 15px; font-size: 14px; pointer-events: auto;
-        }
-        #clock { text-align: right; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.2s; }
-        #clock:hover { background: rgba(255,255,255,0.1); }
-
-        /* ==========================================
-           ПАНЕЛЬ НАСТРОЕК ТАСКБАРА
-        ========================================== */
-        #tb-settings {
-            position: absolute; bottom: calc(var(--tb-height) + 10px); left: 50%; transform: translateX(-50%) translateY(20px);
-            background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border);
-            border-radius: 12px; padding: 20px; width: 300px; z-index: 10001; opacity: 0; pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #tb-settings.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-        .tb-slider-group { margin-bottom: 15px; }
-        .tb-slider-group label { font-size: 12px; display: block; margin-bottom: 5px; color: #ccc; }
-        .tb-slider-group input { width: 100%; cursor: pointer; }
-
-        /* ==========================================
-           КАЛЕНДАРЬ И ТАЙМЕР (Клик по часам)
-        ========================================== */
-        #clock-panel {
-            position: absolute; bottom: calc(var(--tb-height) + 10px); right: 10px; transform: translateY(20px);
-            width: 320px; background: var(--glass-bg); backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column;
-            z-index: 10001; opacity: 0; pointer-events: none; transition: all 0.3s ease; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        #clock-panel.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .cp-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .cp-tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-size: 13px; transition: 0.2s; }
-        .cp-tab:hover { background: rgba(255,255,255,0.05); }
-        .cp-tab.active { border-bottom: 2px solid var(--accent); background: rgba(255,255,255,0.1); }
-        .cp-content { padding: 20px; min-height: 250px; }
-        
-        /* Календарь */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 12px; margin-top: 10px;}
-        .cal-day-header { color: var(--accent); font-weight: bold; margin-bottom: 5px; }
-        .cal-day { padding: 8px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .cal-day:hover { background: rgba(255,255,255,0.1); }
-        .cal-day.today { background: var(--accent); color: black; font-weight: bold; }
-        
-        /* Таймер */
-        .timer-display { font-size: 48px; text-align: center; margin: 20px 0; font-family: monospace; }
-        .timer-controls { display: flex; gap: 10px; justify-content: center; }
-        .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: rgba(255,255,255,0.2); }
-        .btn.primary { background: var(--accent); color: black; font-weight: bold; border: none; }
-        .btn.primary:hover { background: #3ab0f0; }
-        .timer-inputs { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; }
-        .timer-inputs input { width: 50px; background: rgba(0,0,0,0.3); border: 1px solid #555; color: white; text-align: center; padding: 5px; border-radius: 4px; font-size: 16px;}
-
-        /* Уведомления */
-        #notification-area { position: absolute; bottom: 80px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; gap: 10px; }
-        .notification { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); padding: 15px 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease forwards; display: flex; align-items: center; gap: 15px; }
-        @keyframes slideIn { from{transform:translateX(100%); opacity:0;} to{transform:translateX(0); opacity:1;} }
-        @keyframes fadeOut { to{opacity:0; transform:translateY(-10px);} }
-
-        /* ==========================================
-           МЕНЮ ПУСК
-        ========================================== */
-        #start-menu {
-            position: absolute; bottom: calc(var(--tb-height) + 15px); left: 50%; transform: translateX(-50%) translateY(20px);
-            width: 450px; height: 600px;
-            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: 12px; border: 1px solid var(--glass-border);
-            display: flex; flex-direction: column; padding: 25px; z-index: 10001;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #start-menu.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-        .start-search { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0, 0, 0, 0.3); color: white; outline: none; margin-bottom: 25px; font-size: 14px; transition: 0.2s; }
-        .start-search:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
-        .pinned-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; overflow-y: auto; }
-        .pinned-app { display: flex; flex-direction: column; align-items: center; font-size: 12px; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; }
-        .pinned-app:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
-        .pinned-app span.icon { font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-
-        /* ==========================================
-           СИСТЕМА ОКОН (Liquid Glass Windows)
-        ========================================== */
-        .window {
-            position: absolute; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(30px);
-            border-radius: 10px; border: 1px solid var(--glass-border); box-shadow: 0 15px 50px rgba(0,0,0,0.6);
-            display: flex; flex-direction: column; overflow: hidden;
-            min-width: 300px; min-height: 200px; transition: transform 0.2s, opacity 0.2s;
-        }
-        .window.opening { transform: scale(0.9); opacity: 0; }
-        .window.closing { transform: scale(0.9); opacity: 0; pointer-events: none; }
-        
-        .window-header {
-            height: 35px; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.2); cursor: default; user-select: none;
-        }
-        .window-title { padding-left: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-        .window-controls { display: flex; height: 100%; }
-        .win-btn { width: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .win-btn:hover { background: rgba(255,255,255,0.1); }
-        .win-btn.close:hover { background: #e81123; color: white; }
-        
-        .window-content { flex-grow: 1; background: rgba(15,15,15,0.6); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Специфика приложений */
-        /* Хром */
-        .chrome-ui { display: flex; flex-direction: column; height: 100%; background: #202124; color: white; }
-        .chrome-tabs { display: flex; background: #000; padding: 5px 10px 0 10px; gap: 5px; }
-        .chrome-tab { background: #202124; padding: 8px 15px; border-radius: 8px 8px 0 0; font-size: 12px; display: flex; align-items: center; gap: 5px; min-width: 150px; }
-        .chrome-toolbar { display: flex; padding: 8px; gap: 10px; background: #202124; border-bottom: 1px solid #333; align-items: center; }
-        .chrome-url { flex-grow: 1; background: #171717; border: none; padding: 8px 15px; border-radius: 20px; color: white; outline: none; }
-        .chrome-body { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #202124; }
-        .fake-google-logo { font-size: 60px; font-weight: bold; letter-spacing: -2px; margin-bottom: 20px; }
-        .fake-google-logo span:nth-child(1) { color: #4285F4; } .fake-google-logo span:nth-child(2) { color: #EA4335; } .fake-google-logo span:nth-child(3) { color: #FBBC05; } .fake-google-logo span:nth-child(4) { color: #4285F4; } .fake-google-logo span:nth-child(5) { color: #34A853; } .fake-google-logo span:nth-child(6) { color: #EA4335; }
-        .fake-search-box { width: 80%; max-width: 500px; display: flex; background: #303134; border-radius: 24px; padding: 10px 20px; align-items: center; gap: 10px; border: 1px solid #5f6368; }
-        .fake-search-box input { flex-grow: 1; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
-        .fake-search-box input:focus { outline: none; }
-
-        /* Сапер */
-        .minesweeper-grid { display: grid; gap: 2px; background: #808080; padding: 2px; border: 3px inset #eee; margin: auto; }
-        .ms-cell { width: 30px; height: 30px; background: #c0c0c0; border: 3px outset #eee; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 16px; user-select: none; }
-        .ms-cell.revealed { background: #dcdcdc; border: 1px solid #999; }
-        .ms-header { display: flex; justify-content: space-between; padding: 10px; background: #c0c0c0; border: 3px inset #eee; margin-bottom: 10px; font-family: monospace; font-size: 24px; background: black; color: red; }
-
-        /* Змейка (Modern) */
-        .snake-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #0f0f1a; position: relative; }
-        canvas.snake-canvas { background: rgba(0,0,0,0.5); border-radius: 12px; box-shadow: 0 0 30px rgba(76, 194, 255, 0.2); }
-        .snake-score-hud { position: absolute; top: 20px; font-size: 24px; font-weight: bold; color: white; text-shadow: 0 0 10px var(--accent); }
-
-        /* Параметры */
-        .settings-body { display: flex; height: 100%; }
-        .settings-sidebar { width: 220px; background: rgba(0,0,0,0.3); border-right: 1px solid rgba(255,255,255,0.1); padding: 10px 0; }
-        .settings-tab { padding: 12px 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .settings-tab:hover { background: rgba(255,255,255,0.05); }
-        .settings-tab.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); }
-        .settings-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
-        .settings-card { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .wp-item { height: 80px; border-radius: 8px; cursor: pointer; background-size: cover; background-position: center; border: 2px solid transparent; transition: 0.2s; }
-        .wp-item:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .feedback-perfect { color: #00ff00; text-shadow: 0 0 15px #00ff00; }
+        .feedback-good { color: #ffff00; text-shadow: 0 0 15px #ffff00; }
+        .feedback-miss { color: #ff0000; text-shadow: 0 0 15px #ff0000; }
     </style>
 </head>
 <body>
 
-    <!-- РАБОЧИЙ СТОЛ -->
-    <div id="desktop">
-        <!-- Иконки генерируются через JS -->
+<div id="app-container">
+    <!-- Игровой UI во время геймплея -->
+    <div id="game-ui" style="display: none;">
+        <div class="ui-text">Score: <span id="score">0</span></div>
+        <div class="ui-text">Combo: <span id="combo">0</span>x</div>
     </div>
-    <div id="selection-box"></div>
+    <div id="hit-feedback">PERFECT</div>
 
-    <!-- КОНТЕКСТНОЕ МЕНЮ -->
-    <div id="context-menu"></div>
+    <!-- Холст для рендеринга игры -->
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
 
-    <!-- УВЕДОМЛЕНИЯ -->
-    <div id="notification-area"></div>
-
-    <!-- КОНТЕЙНЕР ДЛЯ ОКОН -->
-    <div id="windows-container"></div>
-
-    <!-- ПАНЕЛЬ ЗАДАЧ -->
-    <div id="taskbar">
-        <div id="start-btn" onclick="toggleStartMenu(event)">
-            <span class="icon" style="color: var(--accent); font-size: 24px; filter: drop-shadow(0 0 5px var(--accent));">❖</span>
-        </div>
-        <div class="taskbar-apps" id="taskbar-apps"></div>
-        <div id="system-tray">
-            <span class="icon" title="Звук">🔊</span>
-            <span class="icon" title="Интернет">🌐</span>
-            <div id="clock" onclick="toggleClockPanel(event)">
-                <div id="time" style="font-weight: bold; font-size:13px;">12:00</div>
-                <div id="date" style="font-size: 11px; color: #ccc;">01.01.2026</div>
-            </div>
-        </div>
+    <!-- Главное меню -->
+    <div id="screen-menu" class="screen active">
+        <h1>NEON RHYTHM</h1>
+        <button class="btn" onclick="startGame()">Играть</button>
+        <button class="btn" onclick="showScreen('screen-tutorial')">Обучение</button>
+        <button class="btn" onclick="showScreen('screen-settings')">Настройки</button>
     </div>
 
-    <!-- НАСТРОЙКИ ПАНЕЛИ ЗАДАЧ -->
-    <div id="tb-settings">
-        <h4 style="margin-top:0;">Настройка панели задач</h4>
-        <div class="tb-slider-group">
-            <label>Размер панели (<span id="val-height">50</span>px)</label>
-            <input type="range" id="tb-height-slider" min="40" max="80" value="50">
-        </div>
-        <div class="tb-slider-group">
-            <label>Размер иконок (<span id="val-icon">40</span>px)</label>
-            <input type="range" id="tb-icon-slider" min="30" max="60" value="40">
-        </div>
-        <div class="tb-slider-group">
-            <label>Отступ иконок (<span id="val-gap">8</span>px)</label>
-            <input type="range" id="tb-gap-slider" min="0" max="20" value="8">
-        </div>
+    <!-- Экран обучения -->
+    <div id="screen-tutorial" class="screen">
+        <h2>Обучение</h2>
+        <p>Круглые ноты будут падать сверху вниз по 4 дорожкам.</p>
+        <p>Ваша задача - нажимать соответствующие клавиши ровно в тот момент, когда нота пересекает нижнюю зеленую линию.</p>
+        <p>Чем точнее попадание, тем больше очков! Промах сбрасывает счетчик комбо.</p>
+        <button class="btn" onclick="showScreen('screen-menu')">Назад</button>
     </div>
 
-    <!-- КАЛЕНДАРЬ И ТАЙМЕР -->
-    <div id="clock-panel">
-        <div class="cp-tabs">
-            <div class="cp-tab active" onclick="switchCpTab('calendar')">Календарь</div>
-            <div class="cp-tab" onclick="switchCpTab('timer')">Таймер</div>
-            <div class="cp-tab" onclick="switchCpTab('stopwatch')">Секундомер</div>
+    <!-- Экран настроек управления -->
+    <div id="screen-settings" class="screen">
+        <h2>Настройка Клавиш</h2>
+        <p>Кликните по полю ввода и нажмите нужную кнопку (англ. раскладка).</p>
+        <div class="settings-grid">
+            <div class="key-bind">
+                <label>Дорожка 1</label>
+                <input type="text" class="key-input" id="key0" maxlength="1" readonly>
+            </div>
+            <div class="key-bind">
+                <label>Дорожка 2</label>
+                <input type="text" class="key-input" id="key1" maxlength="1" readonly>
+            </div>
+            <div class="key-bind">
+                <label>Дорожка 3</label>
+                <input type="text" class="key-input" id="key2" maxlength="1" readonly>
+            </div>
+            <div class="key-bind">
+                <label>Дорожка 4</label>
+                <input type="text" class="key-input" id="key3" maxlength="1" readonly>
+            </div>
         </div>
-        <div class="cp-content" id="cp-content">
-            <!-- JS контент -->
-        </div>
+        <button class="btn" onclick="saveSettings()">Сохранить и Назад</button>
     </div>
 
-    <!-- МЕНЮ ПУСК -->
-    <div id="start-menu">
-        <div style="text-align:center; font-size:20px; font-weight:bold; margin-bottom:20px; letter-spacing:1px;">WeLLOS 2</div>
-        <input type="text" class="start-search" placeholder="Поиск приложений, файлов, настроек...">
-        <h4 style="margin-top:0; font-weight:500; font-size: 14px;">Закрепленные</h4>
-        <div class="pinned-apps">
-            <div class="pinned-app" onclick="openApp('explorer'); toggleStartMenu();">
-                <span class="icon">📁</span><span>Проводник</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('browser'); toggleStartMenu();">
-                <span class="icon">🌐</span><span>Chrome</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('settings'); toggleStartMenu();">
-                <span class="icon">⚙️</span><span>Параметры</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('minesweeper'); toggleStartMenu();">
-                <span class="icon">💣</span><span>Сапёр</span>
-            </div>
-            <div class="pinned-app" onclick="openApp('snake'); toggleStartMenu();">
-                <span class="icon">🐍</span><span>Змейка</span>
-            </div>
-        </div>
+    <!-- Экран завершения игры -->
+    <div id="screen-gameover" class="screen">
+        <h1 style="color: #ff0055;">ИГРА ОКОНЧЕНА</h1>
+        <h2>Счет: <span id="final-score">0</span></h2>
+        <h2>Макс. Комбо: <span id="final-combo">0</span></h2>
+        <button class="btn" onclick="startGame()">Играть снова</button>
+        <button class="btn" onclick="showScreen('screen-menu')">Главное меню</button>
     </div>
+</div>
 
 <script>
-    /* ==========================================================================
-       ЯДРО СИСТЕМЫ И ДАННЫЕ
-       ========================================================================== */
-    let zIndexCounter = 100;
-    const openWindows = {};
+    /* =========================================
+       JAVASCRIPT ЛОГИКА, РЕНДЕР И ДВИЖОК
+       ========================================= */
 
-    // Данные файлов на рабочем столе
-    let desktopFiles = [
-        { id: 'app_explorer', type: 'app', name: 'Проводник', icon: '📁', target: 'explorer' },
-        { id: 'app_browser', type: 'app', name: 'Google Chrome', icon: '🌐', target: 'browser' },
-        { id: 'app_settings', type: 'app', name: 'Параметры', icon: '⚙️', target: 'settings' },
-        { id: 'app_minesweeper', type: 'app', name: 'Сапёр', icon: '💣', target: 'minesweeper' },
-        { id: 'app_snake', type: 'app', name: 'Змейка', icon: '🐍', target: 'snake' }
-    ];
-
-    const apps = {
-        'explorer': { title: 'Проводник', icon: '📁', width: 700, height: 500, render: renderExplorer },
-        'browser':  { title: 'Google Chrome', icon: '🌐', width: 900, height: 600, render: renderBrowser },
-        'settings': { title: 'Параметры', icon: '⚙️', width: 750, height: 550, render: renderSettings },
-        'minesweeper': { title: 'Сапёр', icon: '💣', width: 380, height: 450, render: renderMinesweeper },
-        'snake':    { title: 'Змейка Modern', icon: '🐍', width: 500, height: 550, render: renderSnake },
-        'notepad':  { title: 'Блокнот', icon: '📝', width: 600, height: 400, render: renderNotepad }
+    // --- ГЛОБАЛЬНЫЕ НАСТРОЙКИ ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Настройки игры
+    const config = {
+        tracksCount: 4,          // Количество дорожек
+        hitZoneY: 680,           // Y-координата линии попадания
+        hitZoneHeight: 60,       // Высота зоны попадания
+        noteRadius: 25,          // Радиус ноты
+        baseSpeed: 5,            // Базовая скорость падения
+        perfectWindow: 20,       // Погрешность для статуса Perfect (в пикселях)
+        goodWindow: 50,          // Погрешность для статуса Good (в пикселях)
+        spawnRate: 600           // Интервал появления нот (мс) - будет уменьшаться
     };
 
-    let fileContentStorage = {}; // Хранилище текстов для созданных файлов
+    // Состояние управления (по умолчанию 'd', 'f', 'j', 'k')
+    let controls = ['d', 'f', 'j', 'k'];
+    
+    // Глобальные переменные состояния
+    let isPlaying = false;
+    let animationId;
+    let lastTime = 0;
+    let spawnTimer = 0;
+    
+    let score = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    
+    let notes = [];
+    let particles = [];
+    
+    // Аудио контекст (Web Audio API для синтеза звуков попадания)
+    let audioCtx;
 
-    /* ==========================================================================
-       РЕНДЕР РАБОЧЕГО СТОЛА
-       ========================================================================== */
-    function renderDesktop() {
-        const d = document.getElementById('desktop');
-        d.innerHTML = '';
-        desktopFiles.forEach(file => {
-            const div = document.createElement('div');
-            div.className = 'desktop-icon';
-            div.id = 'desk-' + file.id;
-            div.innerHTML = `<span class="icon">${file.icon}</span><span class="title">${file.name}</span>`;
-            
-            // Выделение при клике
-            div.onmousedown = (e) => {
-                e.stopPropagation();
-                if(e.button === 0) { // ЛКМ
-                    document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
-                    div.classList.add('selected');
-                }
-            };
-            
-            // ДВОЙНОЙ КЛИК - запуск/открытие (по просьбе "только ПК")
-            div.ondblclick = () => {
-                if(file.type === 'app') openApp(file.target);
-                else if(file.type === 'folder') alert('Папка пуста');
-                else if(file.type === 'txt') {
-                    appData.notepadTargetId = file.id;
-                    appData.notepadText = fileContentStorage[file.id] || '';
-                    openApp('notepad');
-                }
-            };
+    // --- ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ---
 
-            // Контекстное меню для иконки
-            div.oncontextmenu = (e) => {
-                e.preventDefault(); e.stopPropagation();
-                document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
-                div.classList.add('selected');
-                showContextMenu(e.clientX, e.clientY, [
-                    { label: 'Открыть', action: () => div.ondblclick() },
-                    { label: 'Переименовать', action: () => renameIcon(file.id) },
-                    { label: 'Удалить', action: () => { desktopFiles = desktopFiles.filter(f => f.id !== file.id); renderDesktop(); } }
-                ]);
-            };
-
-            d.appendChild(div);
-        });
-    }
-
-    /* ==========================================================================
-       ВЫДЕЛЕНИЕ РАМКОЙ И КЛИКИ ПО РАБОЧЕМУ СТОЛУ
-       ========================================================================== */
-    const desktopEl = document.getElementById('desktop');
-    const selectionBox = document.getElementById('selection-box');
-    let isSelecting = false, startX, startY;
-
-    desktopEl.addEventListener('mousedown', (e) => {
-        if(e.target !== desktopEl) return;
-        if(e.button !== 0) return; // Только ЛКМ
+    // Функция переключения экранов
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        document.getElementById('game-ui').style.display = 'none';
         
-        hideMenus();
-        document.querySelectorAll('.desktop-icon').forEach(el => el.classList.remove('selected'));
-        
-        isSelecting = true;
-        startX = e.clientX; startY = e.clientY;
-        selectionBox.style.display = 'block';
-        selectionBox.style.left = startX + 'px';
-        selectionBox.style.top = startY + 'px';
-        selectionBox.style.width = '0px';
-        selectionBox.style.height = '0px';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if(!isSelecting) return;
-        const currentX = e.clientX; const currentY = e.clientY;
-        const x = Math.min(startX, currentX); const y = Math.min(startY, currentY);
-        const w = Math.abs(currentX - startX); const h = Math.abs(currentY - startY);
-        
-        selectionBox.style.left = x + 'px'; selectionBox.style.top = y + 'px';
-        selectionBox.style.width = w + 'px'; selectionBox.style.height = h + 'px';
-
-        // Проверка пересечения
-        const rect1 = selectionBox.getBoundingClientRect();
-        document.querySelectorAll('.desktop-icon').forEach(icon => {
-            const rect2 = icon.getBoundingClientRect();
-            const overlap = !(rect2.left > rect1.right || rect2.right < rect1.left || rect2.top > rect1.bottom || rect2.bottom < rect1.top);
-            if(overlap) icon.classList.add('selected');
-            else icon.classList.remove('selected');
-        });
-    });
-
-    document.addEventListener('mouseup', () => {
-        isSelecting = false;
-        selectionBox.style.display = 'none';
-    });
-
-    /* ==========================================================================
-       КОНТЕКСТНОЕ МЕНЮ И СОЗДАНИЕ ФАЙЛОВ
-       ========================================================================== */
-    const ctxMenu = document.getElementById('context-menu');
-
-    function showContextMenu(x, y, items) {
-        ctxMenu.innerHTML = '';
-        items.forEach(item => {
-            if(item.separator) {
-                const sep = document.createElement('div'); sep.className = 'context-separator'; ctxMenu.appendChild(sep); return;
+        // Загружаем текущие кнопки в настройки, если открыли настройки
+        if(screenId === 'screen-settings') {
+            for(let i=0; i<4; i++) {
+                document.getElementById(`key${i}`).value = controls[i];
             }
-            const div = document.createElement('div'); div.className = 'context-item';
-            div.innerText = item.label;
-            div.onclick = (e) => { e.stopPropagation(); item.action(); hideMenus(); };
-            ctxMenu.appendChild(div);
-        });
-        
-        ctxMenu.style.display = 'block';
-        // Фикс выхода за экран
-        let posX = x; let posY = y;
-        if(posX + ctxMenu.offsetWidth > window.innerWidth) posX -= ctxMenu.offsetWidth;
-        if(posY + ctxMenu.offsetHeight > window.innerHeight) posY -= ctxMenu.offsetHeight;
-        
-        ctxMenu.style.left = posX + 'px'; ctxMenu.style.top = posY + 'px';
-    }
-
-    function hideMenus() {
-        ctxMenu.style.display = 'none';
-        document.getElementById('start-menu').classList.remove('show');
-        document.getElementById('tb-settings').classList.remove('show');
-        document.getElementById('clock-panel').classList.remove('show');
-    }
-
-    // Правый клик по рабочему столу
-    desktopEl.addEventListener('contextmenu', (e) => {
-        if(e.target !== desktopEl) return;
-        e.preventDefault();
-        showContextMenu(e.clientX, e.clientY, [
-            { label: '📁 Создать папку', action: () => createDeskItem('folder', 'Новая папка', '📁') },
-            { label: '📝 Создать текстовый файл', action: () => createDeskItem('txt', 'Новый документ.txt', '📄') },
-            { separator: true },
-            { label: '🎨 Сменить обои (Параметры)', action: () => openApp('settings') },
-            { label: '🔄 Обновить', action: () => renderDesktop() }
-        ]);
-    });
-
-    function createDeskItem(type, name, icon) {
-        const id = 'item_' + Date.now();
-        desktopFiles.push({ id, type, name, icon });
-        if(type === 'txt') fileContentStorage[id] = '';
-        renderDesktop();
-        // Сразу запускаем переименование
-        setTimeout(() => renameIcon(id), 100);
-    }
-
-    function renameIcon(id) {
-        const iconDiv = document.getElementById('desk-' + id);
-        if(!iconDiv) return;
-        const titleSpan = iconDiv.querySelector('.title');
-        const fileObj = desktopFiles.find(f => f.id === id);
-        
-        const input = document.createElement('input');
-        input.type = 'text'; input.className = 'rename-input'; input.value = fileObj.name;
-        
-        titleSpan.replaceWith(input);
-        input.focus(); input.select();
-
-        const finishRename = () => {
-            const newName = input.value.trim() || 'Без имени';
-            fileObj.name = newName;
-            renderDesktop();
-        };
-
-        input.onblur = finishRename;
-        input.onkeydown = (e) => { if(e.key === 'Enter') finishRename(); };
-    }
-
-    // Скрытие меню при клике мимо
-    document.addEventListener('mousedown', (e) => {
-        if(!ctxMenu.contains(e.target)) ctxMenu.style.display = 'none';
-        
-        // Закрытие других панелей
-        const targetIds = ['start-menu', 'start-btn', 'clock-panel', 'clock', 'tb-settings', 'taskbar'];
-        let clickInside = false;
-        targetIds.forEach(id => {
-            const el = document.getElementById(id);
-            if(el && el.contains(e.target)) clickInside = true;
-        });
-        if(!clickInside) {
-            document.getElementById('start-menu').classList.remove('show');
-            document.getElementById('clock-panel').classList.remove('show');
-            document.getElementById('tb-settings').classList.remove('show');
         }
-    });
-
-    /* ==========================================================================
-       НАСТРОЙКИ ПАНЕЛИ ЗАДАЧ (По левому клику на панель)
-       ========================================================================== */
-    document.getElementById('taskbar').addEventListener('mousedown', (e) => {
-        // Если клик именно по фону таскбара, а не по кнопкам
-        if(e.target.id === 'taskbar' || e.target.id === 'system-tray' || e.target.className === 'taskbar-apps') {
-            document.getElementById('tb-settings').classList.toggle('show');
-            hideMenusExcept('tb-settings');
-        }
-    });
-
-    function setupTbSliders() {
-        const hSlider = document.getElementById('tb-height-slider');
-        const iSlider = document.getElementById('tb-icon-slider');
-        const gSlider = document.getElementById('tb-gap-slider');
-        
-        hSlider.oninput = () => { document.documentElement.style.setProperty('--tb-height', hSlider.value + 'px'); document.getElementById('val-height').innerText = hSlider.value; };
-        iSlider.oninput = () => { document.documentElement.style.setProperty('--tb-icon-size', iSlider.value + 'px'); document.getElementById('val-icon').innerText = iSlider.value; };
-        gSlider.oninput = () => { document.documentElement.style.setProperty('--tb-gap', gSlider.value + 'px'); document.getElementById('val-gap').innerText = gSlider.value; };
     }
 
-    /* ==========================================================================
-       КАЛЕНДАРЬ, ТАЙМЕР, СЕКУНДОМЕР
-       ========================================================================== */
-    function toggleClockPanel(e) {
-        e.stopPropagation();
-        document.getElementById('clock-panel').classList.toggle('show');
-        hideMenusExcept('clock-panel');
-        switchCpTab('calendar');
-    }
-
-    function switchCpTab(tab) {
-        document.querySelectorAll('.cp-tab').forEach(el => el.classList.remove('active'));
-        event.target.classList.add('active');
-        const content = document.getElementById('cp-content');
-        
-        if(tab === 'calendar') renderCalendar(content);
-        if(tab === 'timer') renderTimer(content);
-        if(tab === 'stopwatch') renderStopwatch(content);
-    }
-
-    function renderCalendar(container) {
-        const now = new Date();
-        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay(); // 0 = Sunday
-        const shift = firstDay === 0 ? 6 : firstDay - 1; // Делаем Пн первым
-        
-        const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-        
-        let html = `<h3 style="margin-top:0; text-align:center;">${monthNames[now.getMonth()]} ${now.getFullYear()}</h3>`;
-        html += `<div class="calendar-grid">`;
-        ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => html += `<div class="cal-day-header">${d}</div>`);
-        
-        for(let i=0; i<shift; i++) html += `<div></div>`;
-        for(let i=1; i<=daysInMonth; i++) {
-            let cl = 'cal-day';
-            if(i === now.getDate()) cl += ' today';
-            html += `<div class="${cl}">${i}</div>`;
-        }
-        html += `</div>`;
-        container.innerHTML = html;
-    }
-
-    // ТАЙМЕР ЛОГИКА
-    let timerInterval = null;
-    let timerSeconds = 0;
-    function renderTimer(container) {
-        container.innerHTML = `
-            <h3 style="margin-top:0; text-align:center;">Таймер</h3>
-            <div class="timer-inputs">
-                <input type="number" id="t-min" placeholder="Мин" min="0" value="1">
-                <span style="font-size:24px;">:</span>
-                <input type="number" id="t-sec" placeholder="Сек" min="0" max="59" value="0">
-            </div>
-            <div class="timer-display" id="t-display">01:00</div>
-            <div class="timer-controls">
-                <button class="btn primary" id="t-start" onclick="startTimer()">Старт</button>
-                <button class="btn" onclick="stopTimer()">Стоп</button>
-            </div>
-        `;
-        updateTimerDisplay();
-    }
-
-    function startTimer() {
-        if(timerInterval) clearInterval(timerInterval);
-        const m = parseInt(document.getElementById('t-min').value) || 0;
-        const s = parseInt(document.getElementById('t-sec').value) || 0;
-        timerSeconds = m * 60 + s;
-        if(timerSeconds <= 0) return;
-        
-        document.getElementById('t-start').innerText = 'Заново';
-        
-        timerInterval = setInterval(() => {
-            timerSeconds--;
-            updateTimerDisplay();
-            if(timerSeconds <= 0) {
-                clearInterval(timerInterval);
-                showNotification("⏰ Время вышло!", "Ваш таймер завершил работу.");
-                document.getElementById('t-start').innerText = 'Старт';
+    // Логика захвата клавиш в настройках
+    for(let i=0; i<4; i++) {
+        const input = document.getElementById(`key${i}`);
+        input.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            // Игнорируем спецклавиши
+            if(e.key.length === 1) {
+                input.value = e.key.toLowerCase();
             }
-        }, 1000);
-    }
-    function stopTimer() { clearInterval(timerInterval); document.getElementById('t-start').innerText = 'Старт'; }
-    function updateTimerDisplay() {
-        const d = document.getElementById('t-display');
-        if(!d) return;
-        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-        const s = String(timerSeconds % 60).padStart(2, '0');
-        d.innerText = `${m}:${s}`;
+        });
     }
 
-    // СЕКУНДОМЕР
-    let swInterval = null;
-    let swTime = 0;
-    function renderStopwatch(container) {
-        container.innerHTML = `
-            <h3 style="margin-top:0; text-align:center;">Секундомер</h3>
-            <div class="timer-display" id="sw-display">00:00.0</div>
-            <div class="timer-controls">
-                <button class="btn primary" onclick="startSw()">Старт</button>
-                <button class="btn" onclick="stopSw()">Стоп</button>
-                <button class="btn" onclick="resetSw()">Сброс</button>
-            </div>
-        `;
-    }
-    function startSw() {
-        if(swInterval) return;
-        swInterval = setInterval(() => { swTime += 100; updateSw(); }, 100);
-    }
-    function stopSw() { clearInterval(swInterval); swInterval = null; }
-    function resetSw() { stopSw(); swTime = 0; updateSw(); }
-    function updateSw() {
-        const d = document.getElementById('sw-display');
-        if(!d) return;
-        const totalSec = Math.floor(swTime / 1000);
-        const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
-        const s = String(totalSec % 60).padStart(2, '0');
-        const ms = (swTime % 1000) / 100;
-        d.innerText = `${m}:${s}.${ms}`;
+    // Сохранение настроек
+    function saveSettings() {
+        for(let i=0; i<4; i++) {
+            controls[i] = document.getElementById(`key${i}`).value.toLowerCase();
+        }
+        showScreen('screen-menu');
     }
 
-    function showNotification(title, text) {
-        const area = document.getElementById('notification-area');
-        const notif = document.createElement('div');
-        notif.className = 'notification';
-        notif.innerHTML = `<div><strong style="color:var(--accent);">${title}</strong><br><span style="font-size:12px;">${text}</span></div>`;
-        area.appendChild(notif);
+    // --- ЗВУКОВАЯ СИСТЕМА (Синтезатор) ---
+    
+    // Инициализация аудио (вызывается по клику, чтобы браузер разрешил звук)
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // Проигрывание короткого звука (писк) при попадании
+    function playHitSound(trackIndex) {
+        if (!audioCtx) return;
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        // Разные тональности для разных дорожек (Пентатоника для красоты)
+        const frequencies = [329.63, 392.00, 440.00, 523.25]; // E4, G4, A4, C5
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequencies[trackIndex];
+        
+        // Огибающая громкости (быстрое затухание)
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+
+
+    // --- ИГРОВЫЕ КЛАССЫ ---
+
+    class Note {
+        constructor(trackIndex, speedMultiplier = 1) {
+            this.trackIndex = trackIndex;
+            // Рассчитываем X координату по центру дорожки
+            const trackWidth = canvas.width / config.tracksCount;
+            this.x = (trackIndex * trackWidth) + (trackWidth / 2);
+            this.y = -config.noteRadius; // Начинает за экраном сверху
+            this.speed = config.baseSpeed * speedMultiplier;
+            this.active = true;
+            this.colors = ['#ff0055', '#00ffcc', '#ffcc00', '#cc00ff']; // Цвета для 4 дорожек
+            this.color = this.colors[trackIndex];
+        }
+
+        update() {
+            this.y += this.speed;
+            
+            // Если нота ушла за нижний край - промах
+            if (this.y > canvas.height + config.noteRadius && this.active) {
+                this.active = false;
+                registerHit('miss');
+            }
+        }
+
+        draw(ctx) {
+            if (!this.active) return;
+            
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, config.noteRadius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            
+            // Неоновое свечение
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.color;
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Сброс
+            
+            // Буква внутри ноты для подсказки
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(controls[this.trackIndex].toUpperCase(), this.x, this.y);
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.size = Math.random() * 5 + 2;
+            this.speedX = (Math.random() - 0.5) * 10;
+            this.speedY = (Math.random() - 0.5) * 10;
+            this.life = 1.0; // от 1 до 0
+        }
+
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.life -= 0.05; // Скорость затухания
+        }
+
+        draw(ctx) {
+            if (this.life <= 0) return;
+            ctx.globalAlpha = this.life;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    // --- ИГРОВАЯ ЛОГИКА ---
+
+    function startGame() {
+        initAudio();
+        // Сброс переменных
+        notes = [];
+        particles = [];
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        config.spawnRate = 600; // Сброс сложности
+        
+        updateUI();
+        
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById('game-ui').style.display = 'flex';
+        
+        isPlaying = true;
+        lastTime = performance.now();
+        
+        // Запуск игрового цикла
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-combo').innerText = maxCombo;
+        showScreen('screen-gameover');
+    }
+
+    function spawnNote() {
+        // Выбираем случайную дорожку
+        const track = Math.floor(Math.random() * config.tracksCount);
+        
+        // Увеличиваем скорость игры со временем (минимальный спавн 250мс)
+        const speedMultiplier = 1 + (score / 5000); 
+        config.spawnRate = Math.max(250, 600 - (score / 20));
+        
+        notes.push(new Note(track, speedMultiplier));
+    }
+
+    function createParticles(x, y, color) {
+        for(let i=0; i<15; i++) {
+            particles.push(new Particle(x, y, color));
+        }
+    }
+
+    // Обработка текстового фидбека по центру экрана
+    function showHitText(type) {
+        const fbText = document.getElementById('hit-feedback');
+        fbText.className = ''; // сброс
+        fbText.style.opacity = '1';
+        fbText.style.transform = 'translate(-50%, -50%) scale(1.2)';
+        
+        if (type === 'perfect') {
+            fbText.innerText = 'PERFECT!';
+            fbText.classList.add('feedback-perfect');
+        } else if (type === 'good') {
+            fbText.innerText = 'GOOD';
+            fbText.classList.add('feedback-good');
+        } else {
+            fbText.innerText = 'MISS';
+            fbText.classList.add('feedback-miss');
+        }
+        
+        // Анимация затухания
         setTimeout(() => {
-            notif.style.animation = 'fadeOut 0.3s ease forwards';
-            setTimeout(() => notif.remove(), 300);
-        }, 5000);
+            fbText.style.transform = 'translate(-50%, -50%) scale(1)';
+            fbText.style.opacity = '0';
+        }, 150);
     }
 
-    // Часы в трее
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        document.getElementById('date').innerText = now.toLocaleDateString();
-    }, 1000);
-
-    /* ==========================================================================
-       УПРАВЛЕНИЕ ОКНАМИ
-       ========================================================================== */
-    function toggleStartMenu(e) { e.stopPropagation(); document.getElementById('start-menu').classList.toggle('show'); hideMenusExcept('start-menu'); }
-    function hideMenusExcept(id) {
-        if(id !== 'start-menu') document.getElementById('start-menu').classList.remove('show');
-        if(id !== 'clock-panel') document.getElementById('clock-panel').classList.remove('show');
-        if(id !== 'tb-settings') document.getElementById('tb-settings').classList.remove('show');
-    }
-
-    const appData = {}; // Глобальное хранилище состояния
-
-    function openApp(appId) {
-        if (openWindows[appId]) { focusWindow(appId); return; }
-
-        const app = apps[appId];
-        const winId = 'win-' + appId;
-        
-        const win = document.createElement('div');
-        win.className = 'window opening';
-        win.id = winId;
-        win.style.width = app.width + 'px'; win.style.height = app.height + 'px';
-        
-        let startLeft = Math.max(0, (window.innerWidth / 2 - app.width / 2) + (Math.random()*40-20));
-        let startTop = Math.max(0, (window.innerHeight / 2 - app.height / 2) + (Math.random()*40-20));
-        win.style.left = startLeft + 'px'; win.style.top = startTop + 'px';
-        win.style.zIndex = ++zIndexCounter;
-
-        win.innerHTML = `
-            <div class="window-header" onmousedown="focusWindow('${appId}')">
-                <div class="window-title"><span class="icon">${app.icon}</span> ${app.title}</div>
-                <div class="window-controls">
-                    <div class="win-btn" onclick="minimizeWindow('${appId}')">—</div>
-                    <div class="win-btn" 
-onclick="maximizeWindow('${appId}')">□</div>
-                    <div class="win-btn close" onclick="closeWindow('${appId}')">✕</div>
-                </div>
-            </div>
-            <div class="window-content" id="content-${appId}" onmousedown="focusWindow('${appId}')"></div>
-        `;
-
-        document.getElementById('windows-container').appendChild(win);
-        setTimeout(() => win.classList.remove('opening'), 50);
-
-        openWindows[appId] = { element: win, minimized: false, maximized: false };
-        
-        makeDraggable(win, win.querySelector('.window-header'));
-        addToTaskbar(appId);
-        
-        if(app.render) app.render(document.getElementById('content-' + appId), appId);
-    }
-
-    function closeWindow(appId) {
-        if (openWindows[appId]) {
-            const win = openWindows[appId].element;
-            win.classList.add('closing');
-            if(appId === 'snake' && window.snakeInterval) clearInterval(window.snakeInterval);
-            setTimeout(() => { win.remove(); delete openWindows[appId]; removeFromTaskbar(appId); }, 200);
-        }
-    }
-
-    function focusWindow(appId) {
-        if (openWindows[appId]) {
-            if (openWindows[appId].minimized) { openWindows[appId].element.style.display = 'flex'; openWindows[appId].minimized = false; }
-            openWindows[appId].element.style.zIndex = ++zIndexCounter;
-            updateTaskbarActive(appId);
-        }
-    }
-
-    function minimizeWindow(appId) {
-        if (openWindows[appId]) {
-            openWindows[appId].element.style.display = 'none'; openWindows[appId].minimized = true;
-            document.getElementById('tb-' + appId).classList.remove('active');
-        }
-    }
-
-    function maximizeWindow(appId) {
-        const win = openWindows[appId].element;
-        if (!openWindows[appId].maximized) {
-            openWindows[appId].prevRect = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
-            win.style.transition = 'all 0.2s ease';
-            win.style.left = '0px'; win.style.top = '0px';
-            win.style.width = '100vw'; win.style.height = `calc(100vh - var(--tb-height))`;
-            openWindows[appId].maximized = true;
-            setTimeout(() => win.style.transition = 'transform 0.2s, opacity 0.2s', 200);
+    function registerHit(type) {
+        if (type === 'miss') {
+            combo = 0;
+            showHitText('miss');
+            // Если слишком много промахов подряд, можно сделать Game Over,
+            // но пока сделаем простую механику - игра идет бесконечно, очки копятся.
+            // Для примера: закончим игру если набрали минус 500 очков.
+            score -= 50;
+            if (score < -1000) gameOver();
         } else {
-            const rect = openWindows[appId].prevRect;
-            win.style.transition = 'all 0.2s ease';
-            win.style.left = rect.left; win.style.top = rect.top; win.style.width = rect.width; win.style.height = rect.height;
-            openWindows[appId].maximized = false;
-            setTimeout(() => win.style.transition = 'transform 0.2s, opacity 0.2s', 200);
-        }
-    }
-
-    function makeDraggable(win, header) {
-        let isDragging = false, startX, startY, initialLeft, initialTop;
-        header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.window-controls') || openWindows[win.id.replace('win-','')].maximized) return;
-            isDragging = true; startX = e.clientX; startY = e.clientY;
-            initialLeft = parseInt(win.style.left) || 0; initialTop = parseInt(win.style.top) || 0;
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            win.style.left = `${initialLeft + (e.clientX - startX)}px`;
-            win.style.top = `${initialTop + (e.clientY - startY)}px`;
-        });
-        document.addEventListener('mouseup', () => { isDragging = false; });
-    }
-
-    function addToTaskbar(appId) {
-        const tb = document.getElementById('taskbar-apps');
-        const icon = document.createElement('div');
-        icon.className = 'taskbar-icon active'; icon.id = 'tb-' + appId;
-        icon.innerHTML = `<span class="icon" style="font-size:24px;">${apps[appId].icon}</span>`;
-        icon.onclick = (e) => {
-            e.stopPropagation(); // Чтобы не открывались настройки таскбара
-            if (openWindows[appId].minimized || openWindows[appId].element.style.zIndex != zIndexCounter) focusWindow(appId);
-            else minimizeWindow(appId);
-        };
-        tb.appendChild(icon);
-    }
-    function removeFromTaskbar(appId) { const icon = document.getElementById('tb-' + appId); if (icon) icon.remove(); }
-    function updateTaskbarActive(appId) {
-        document.querySelectorAll('.taskbar-icon').forEach(el => el.classList.remove('active'));
-        const activeTb = document.getElementById('tb-' + appId);
-        if (activeTb) activeTb.classList.add('active');
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЯ: БЛОКНОТ (С СОХРАНЕНИЕМ)
-       ========================================================================== */
-    function renderNotepad(container) {
-        const text = appData.notepadText || '';
-        container.innerHTML = `
-            <div style="height: 40px; background: #2d2d2d; display: flex; align-items: center; padding: 0 10px; border-bottom: 1px solid #444;">
-                <button class="btn" onclick="saveNotepad()">💾 Сохранить</button>
-            </div>
-            <textarea id="np-text" style="width:100%; height:calc(100% - 40px); background:#1e1e1e; color:#ccc; font-family:Consolas; font-size:14px; padding:10px; border:none; outline:none; resize:none;">${text}</textarea>
-        `;
-    }
-    function saveNotepad() {
-        if(appData.notepadTargetId) {
-            fileContentStorage[appData.notepadTargetId] = document.getElementById('np-text').value;
-            showNotification("Блокнот", "Файл успешно сохранен!");
-        } else {
-            alert("Этот документ не привязан к файлу на рабочем столе.");
-        }
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЯ: GOOGLE CHROME (Встроенный фейк)
-       ========================================================================== */
-    function renderBrowser(container) {
-        container.innerHTML = `
-            <div class="chrome-ui">
-                <div class="chrome-tabs">
-                    <div class="chrome-tab">
-                        <img src="https://www.google.com/favicon.ico" width="16"> Новая вкладка
-                        <span style="margin-left:auto; cursor:pointer;" onclick="closeWindow('browser')">✕</span>
-                    </div>
-                </div>
-                <div class="chrome-toolbar">
-                    <button class="btn" style="border-radius:50%; width:30px; height:30px; padding:0;">←</button>
-                    <button class="btn" style="border-radius:50%; width:30px; height:30px; padding:0;" onclick="renderBrowser(document.getElementById('content-browser'))">↻</button>
-                    <input type="text" class="chrome-url" id="chrome-url" value="https://google.com">
-                </div>
-                <div class="chrome-body" id="chrome-body">
-                    <div class="fake-google-logo">
-                        <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
-                    </div>
-                    <div class="fake-search-box">
-                        <span style="color:#9aa0a6;">🔍</span>
-                        <input type="text" id="chrome-search" placeholder="Введите поисковый запрос или URL" onkeydown="if(event.key==='Enter') chromeSearch()">
-                        <span style="color:#4285F4; cursor:pointer;" title="Микрофон">🎤</span>
-                    </div>
-                    <div style="margin-top: 30px; display:flex; gap:10px;">
-                        <button class="btn" style="background:#303134; border:none;" onclick="chromeSearch()">Поиск в Google</button>
-                        <button class="btn" style="background:#303134; border:none;">Мне повезёт!</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    function chromeSearch() {
-        const query = document.getElementById('chrome-search').value;
-        const body = document.getElementById('chrome-body');
-        document.getElementById('chrome-url').value = `https://google.com/search?q=${encodeURIComponent(query)}`;
-        body.innerHTML = `
-            <div style="padding: 20px; width: 100%; height: 100%; align-items:flex-start; justify-content:flex-start;">
-                <div style="color:#9aa0a6; font-size:14px; margin-bottom:20px;">Результатов: примерно 1 337 000 (0.42 сек.)</div>
-                <h3 style="color:#8ab4f8; margin:0 0 5px 0; cursor:pointer; font-size:20px;">${query} - Википедия</h3>
-                <div style="color:#bdc1c6; font-size:14px; margin-bottom: 20px;">Вы искали "${query}". В рамках WeLLOS 2 это симуляция браузера, так как реальные сайты блокируют iframe. Но выглядит круто, правда?</div>
-                
-                <h3 style="color:#8ab4f8; margin:0 0 5px 0; cursor:pointer; font-size:20px;">Картинки по запросу "${query}"</h3>
-                <div style="display:flex; gap:10px;">
-                    <div style="width:120px; height:80px; background:#444; border-radius:8px;"></div>
-                    <div style="width:120px; height:80px; background:#555; border-radius:8px;"></div>
-                    <div style="width:120px; height:80px; background:#666; border-radius:8px;"></div>
-                </div>
-            </div>
-        `;
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЯ: САПЁР
-       ========================================================================== */
-    function renderMinesweeper(container) {
-        container.innerHTML = `
-            <div style="background:#c0c0c0; height:100%; padding:10px; display:flex; flex-direction:column;">
-                <div class="ms-header">
-                    <span id="ms-mines">010</span>
-                    <button style="font-size:20px; cursor:pointer;" onclick="initMinesweeper()">🙂</button>
-                    <span id="ms-time">000</span>
-                </div>
-                <div id="ms-grid" class="minesweeper-grid"></div>
-            </div>
-        `;
-        initMinesweeper();
-    }
-
-    let msBoard = [], msGameOver = false, msMines = 10;
-    function initMinesweeper() {
-        msGameOver = false; msBoard = [];
-        const grid = document.getElementById('ms-grid');
-        grid.style.gridTemplateColumns = `repeat(10, 30px)`;
-        grid.innerHTML = '';
-        
-        // Создаем доску
-        for(let y=0; y<10; y++) {
-            msBoard[y] = [];
-            for(let x=0; x<10; x++) {
-                msBoard[y][x] = { mine: false, revealed: false, flagged: false, count: 0, el: null };
-                const cell = document.createElement('div');
-                cell.className = 'ms-cell';
-                cell.onmousedown = (e) => handleMsClick(x, y, e);
-                grid.appendChild(cell);
-                msBoard[y][x].el = cell;
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+            
+            const multiplier = 1 + Math.floor(combo / 10); // +1 к множителю каждые 10 комбо
+            
+            if (type === 'perfect') {
+                score += 100 * multiplier;
+                showHitText('perfect');
+            } else if (type === 'good') {
+                score += 50 * multiplier;
+                showHitText('good');
             }
         }
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('combo').innerText = combo;
+    }
+
+    // --- УПРАВЛЕНИЕ В ИГРЕ ---
+
+    window.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
         
-        // Расставляем мины
-        let placed = 0;
-        while(placed < msMines) {
-            let rx = Math.floor(Math.random()*10); let ry = Math.floor(Math.random()*10);
-            if(!msBoard[ry][rx].mine) { msBoard[ry][rx].mine = true; placed++; }
-        }
+        const key = e.key.toLowerCase();
+        const trackIndex = controls.indexOf(key);
         
-        // Считаем соседей
-        for(let y=0; y<10; y++) {
-            for(let x=0; x<10; x++) {
-                if(msBoard[y][x].mine) continue;
-                let c = 0;
-                for(let dy=-1; dy<=1; dy++) {
-                    for(let dx=-1; dx<=1; dx++) {
-                        if(y+dy>=0 && y+dy<10 && x+dx>=0 && x+dx<10 && msBoard[y+dy][x+dx].mine) c++;
+        if (trackIndex !== -1) {
+            // Ищем активную ноту на этой дорожке
+            let noteHit = false;
+            
+            // Ищем самую нижнюю ноту на дорожке
+            for (let i = 0; i < notes.length; i++) {
+                let note = notes[i];
+                if (note.active && note.trackIndex === trackIndex) {
+                    
+                    // Проверяем дистанцию до линии попадания
+                    const distance = Math.abs(note.y - config.hitZoneY);
+                    
+                    if (distance < config.goodWindow) {
+                        note.active = false; // "Убиваем" ноту
+                        noteHit = true;
+                        
+                        playHitSound(trackIndex);
+                        createParticles(note.x, note.y, note.color);
+                        
+                        if (distance < config.perfectWindow) {
+                            registerHit('perfect');
+                        } else {
+                            registerHit('good');
+                        }
+                        break; // Обрабатываем только одну ноту за нажатие
                     }
                 }
-                msBoard[y][x].count = c;
-            }
-        }
-    }
-
-    function handleMsClick(x, y, e) {
-        if(msGameOver) return;
-        const cell = msBoard[y][x];
-        if(e.button === 2) { // Правый клик
-            if(!cell.revealed) {
-                cell.flagged = !cell.flagged;
-                cell.el.innerText = cell.flagged ? '🚩' : '';
-            }
-            return;
-        }
-        if(cell.flagged || cell.revealed) return;
-        
-        if(cell.mine) {
-            cell.el.innerText = '💣'; cell.el.style.background = 'red';
-            msGameOver = true; alert('Вы проиграли!'); return;
-        }
-        
-        revealMs(x,y);
-    }
-
-    function revealMs(x,y) {
-        if(x<0 || x>=10 || y<0 || y>=10) return;
-        const cell = msBoard[y][x];
-        if(cell.revealed || cell.flagged) return;
-        
-        cell.revealed = true;
-        cell.el.classList.add('revealed');
-        const colors = ['','blue','green','red','darkblue','brown','cyan','black','gray'];
-        if(cell.count > 0) {
-            cell.el.innerText = cell.count;
-            cell.el.style.color = colors[cell.count];
-        } else {
-            // Раскрываем соседей
-            for(let dy=-1; dy<=1; dy++) {
-                for(let dx=-1; dx<=1; dx++) revealMs(x+dx, y+dy);
-            }
-        }
-    }
-    // Отключаем контекстное меню в сапере
-    document.addEventListener('contextmenu', e => { if(e.target.classList.contains('ms-cell')) e.preventDefault(); });
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЯ: ЗМЕЙКА (Liquid Modern)
-       ========================================================================== */
-    function renderSnake(container) {
-        container.innerHTML = `
-            <div class="snake-container">
-                <div class="snake-score-hud">Счет: <span id="sn-score">0</span></div>
-                <canvas id="snakeCanvas" width="400" height="400" class="snake-canvas"></canvas>
-            </div>
-        `;
-        setTimeout(initModernSnake, 100);
-    }
-
-    function initModernSnake() {
-        const canvas = document.getElementById('snakeCanvas');
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        const gridSize = 20;
-        let snake = [{x: 10, y: 10}];
-        let food = {x: 15, y: 15};
-        let score = 0;
-        let dx = 1, dy = 0;
-        
-        if(window.snakeInterval) clearInterval(window.snakeInterval);
-        
-        document.addEventListener('keydown', function snakeKey(e) {
-            if(!document.getElementById('snakeCanvas')) { document.removeEventListener('keydown', snakeKey); return; }
-            if(e.key === 'ArrowUp' && dy !== 1) { dx = 0; dy = -1; }
-            if(e.key === 'ArrowDown' && dy !== -1) { dx = 0; dy = 1; }
-            if(e.key === 'ArrowLeft' && dx !== 1) { dx = -1; dy = 0; }
-            if(e.key === 'ArrowRight' && dx !== -1) { dx = 1; dy = 0; }
-        });
-
-        function draw() {
-            if(!document.getElementById('snakeCanvas')) { clearInterval(window.snakeInterval); return; }
-            
-            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-            if(head.x < 0) head.x = 19; if(head.x > 19) head.x = 0;
-            if(head.y < 0) head.y = 19; if(head.y > 19) head.y = 0;
-            
-            for(let i=1; i<snake.length; i++) {
-                if(head.x === snake[i].x && head.y === snake[i].y) {
-                    alert('Игра окончена! Счет: ' + score);
-                    snake = [{x:10, y:10}]; score = 0; dx=1; dy=0;
-                    document.getElementById('sn-score').innerText = '0';
-                }
             }
             
-            snake.unshift(head);
-            if(head.x === food.x && head.y === food.y) {
-                score += 10; document.getElementById('sn-score').innerText = score;
-                food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
-            } else { snake.pop(); }
+            // Если нажали кнопку, а нот в зоне нет = промах (штраф за спам)
+            if (!noteHit) {
+                registerHit('miss');
+            }
+            
+            // Эффект нажатия на дорожке (визуальный фидбек)
+            drawTrackFlash(trackIndex);
+        }
+    });
 
-            // Отрисовка
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let activeFlashes = {};
+    function drawTrackFlash(index) {
+        activeFlashes[index] = 1.0; // прозрачность вспышки
+    }
+
+    // --- ОСНОВНОЙ ИГРОВОЙ ЦИКЛ ---
+
+    function gameLoop(timestamp) {
+        if (!isPlaying) return;
+        
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        // 1. Очистка холста
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 2. Отрисовка фона (дорожки)
+        const trackWidth = canvas.width / config.tracksCount;
+        for (let i = 0; i < config.tracksCount; i++) {
+            // Границы дорожек
+            ctx.fillStyle = 'var(--track-bg)';
+            ctx.fillRect(i * trackWidth, 0, trackWidth - 2, canvas.height);
             
-            // Еда (Светящаяся)
-            ctx.shadowBlur = 15; ctx.shadowColor = '#ff4c4c'; ctx.fillStyle = '#ff4c4c';
-            ctx.beginPath(); ctx.arc(food.x*gridSize + gridSize/2, food.y*gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI*2); ctx.fill();
+            // Буквы управления внизу
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(controls[i].toUpperCase(), (i * trackWidth) + (trackWidth / 2), canvas.height - 30);
             
-            // Змейка (Жидкий неон)
-            ctx.shadowColor = '#4cc2ff'; ctx.fillStyle = '#4cc2ff';
-            snake.forEach((part, index) => {
-                ctx.shadowBlur = index === 0 ? 20 : 10; // Голова светится сильнее
-                ctx.beginPath();
-                // Делаем хвост чуть тоньше
-                let radius = gridSize/2 - (index * 0.2); 
-                if(radius < 4) radius = 4;
-                ctx.arc(part.x*gridSize + gridSize/2, part.y*gridSize + gridSize/2, radius, 0, Math.PI*2);
-                ctx.fill();
-            });
-            ctx.shadowBlur = 0; // Сброс
+            // Вспышка при нажатии
+            if (activeFlashes[i] > 0) {
+                ctx.fillStyle = `rgba(0, 255, 255, ${activeFlashes[i] * 0.3})`;
+                ctx.fillRect(i * trackWidth, 0, trackWidth, canvas.height);
+                activeFlashes[i] -= 0.05; // затухание вспышки
+            }
         }
         
-        window.snakeInterval = setInterval(draw, 100);
-    }
-
-    /* ==========================================================================
-       ПРИЛОЖЕНИЯ: ПАРАМЕТРЫ И СМЕНА ОБОЕВ
-       ========================================================================== */
-    function renderSettings(container) {
-        container.innerHTML = `
-            <div class="settings-body">
-                <div class="settings-sidebar">
-                    <div class="settings-tab active" onclick="switchSetTab(this, 'pers')">🎨 Персонализация</div>
-                    <div class="settings-tab" onclick="switchSetTab(this, 'about')">ℹ️ О системе</div>
-                </div>
-                <div class="settings-content" id="set-content"></div>
-            </div>
-        `;
-        switchSetTab(container.querySelector('.settings-tab'), 'pers');
-    }
-
-    function switchSetTab(element, tabId) {
-        document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-        const content = document.getElementById('set-content');
+        // 3. Отрисовка зоны попадания (Hit Zone)
+        ctx.fillStyle = 'var(--hit-zone)';
+        ctx.fillRect(0, config.hitZoneY - config.hitZoneHeight/2, canvas.width, config.hitZoneHeight);
         
-        if (tabId === 'pers') {
-            // Встроенные обои + 3 новых
-            const urls = [
-                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000', // Абстракция 1
-                'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000', // Абстракция 2
-                'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000', // Абстракция 3
-                'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=1000', // Темный лес (НОВОЕ)
-                'https://images.unsplash.com/photo-1506744626753-1fa44f101185?q=80&w=1000', // Горы (НОВОЕ)
-                'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?q=80&w=1000'  // Неоновый город (НОВОЕ)
-            ];
-            // Чтобы добавить свои обои насовсем - просто добавьте ссылку в массив `urls` выше.
-            
-            let gridHTML = urls.map(u => `<div class="wp-item" style="background-image:url('${u}')" onclick="setWallpaper('${u}')"></div>`).join('');
-            
-            content.innerHTML = `
-                <h2 style="margin-top:0;">Персонализация</h2>
-                <div class="settings-card">
-                    <h3>Обои рабочего стола</h3>
-                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
-                        ${gridHTML}
-                    </div>
-                    <h4>Загрузить свои обои (По ссылке):</h4>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="custom-wp" placeholder="Вставьте URL картинки" style="flex-grow:1; padding:8px; background:rgba(0,0,0,0.3); color:white; border:1px solid #555; border-radius:4px;">
-                        <button class="btn primary" onclick="setWallpaper(document.getElementById('custom-wp').value)">Применить</button>
-                    </div>
-                    <p style="font-size:11px; color:#aaa;">(Совет: найдите картинку в интернете, нажмите ПКМ -> Копировать URL картинки)</p>
-                </div>
-            `;
-        } else if (tabId === 'about') {
-            content.innerHTML = `
-                <h2 style="margin-top:0;">О системе</h2>
-                <div class="settings-card" style="text-align:cente;">
-                    <h1 style="color:var(--accent); margin-bottom:5px;">WeLLOS 2</h1>
-                    <p>Версия: Liquid Glass Edition (Только для ПК)</p>
-                    <p>Анимации и оптимизация на высшем уровне.</p>
-                </div>
-            `;
+        ctx.beginPath();
+        ctx.moveTo(0, config.hitZoneY);
+        ctx.lineTo(canvas.width, config.hitZoneY);
+        ctx.strokeStyle = '#0f0';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 4. Логика появления новых нот
+        spawnTimer += deltaTime;
+        if (spawnTimer > config.spawnRate) {
+            spawnNote();
+            spawnTimer = 0;
         }
+
+        // 5. Обновление и отрисовка нот
+        for (let i = notes.length - 1; i >= 0; i--) {
+            notes[i].update();
+            notes[i].draw(ctx);
+            // Удаляем неактивные ноты из массива для оптимизации памяти
+            if (!notes[i].active && notes[i].y > canvas.height) {
+                notes.splice(i, 1);
+            }
+        }
+
+        // 6. Обновление и отрисовка частиц
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw(ctx);
+            if (particles[i].life <= 0) {
+                particles.splice(i, 1);
+            }
+        }
+
+        // Зацикливание
+        animationId = requestAnimationFrame(gameLoop);
     }
-
-    function setWallpaper(url) {
-        if(!url) return;
-        document.body.style.backgroundImage = `url('${url}')`;
-    }
-
-    // Заглушка для проводника, чтобы открывалось
-    function renderExplorer(container) {
-        container.innerHTML = `<div style="padding:20px; text-align:center; color:#aaa; margin-top:50px;">
-            <span style="font-size:40px;">📁</span><br>
-            В этой версии файлы создаются прямо на рабочем столе (ПКМ по рабочему столу).<br>
-            Загляните туда!
-        </div>`;
-    }
-
-    // Инициализация
-    renderDesktop();
-    setupTbSliders();
-
 </script>
 </body>
 </html>
