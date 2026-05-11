@@ -3,84 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Merge Defense Mobile</title>
+    <title>Neon Merge Strike</title>
     <style>
-        :root { --bg: #0a0a12; --grid: #1a1a2e; --accent: #4ecca3; --gold: #f1c40f; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; text-align: center; }
-        #header { padding: 15px; display: flex; justify-content: space-around; background: #16213e; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .stat-val { font-size: 20px; font-weight: bold; color: var(--gold); }
-        
-        /* Игровое поле */
-        #game-container { position: relative; width: 100vw; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #enemy-lane { width: 100%; height: 100px; position: relative; border-bottom: 2px dashed #333; margin-bottom: 20px; }
-        #grid { 
-            display: grid; grid-template-columns: repeat(3, 80px); grid-template-rows: repeat(3, 80px); 
-            gap: 10px; padding: 10px; background: var(--grid); border-radius: 15px; 
+        :root { 
+            --bg: #050505; --panel: #111; --accent: #00f2ff; 
+            --gold: #ffcc00; --hp: #ff2d55; 
         }
-        .slot { 
-            width: 80px; height: 80px; background: #0f3460; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; font-size: 30px;
-            transition: 0.2s; position: relative; border: 2px solid transparent;
+        body { 
+            margin: 0; background: var(--bg); color: white; 
+            font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; 
+            touch-action: manipulation; user-select: none;
         }
-        .slot.active { border-color: var(--accent); transform: scale(1.05); }
-        .unit { position: absolute; pointer-events: none; z-index: 10; transition: transform 0.1s; }
+        #ui-top {
+            display: flex; justify-content: space-around; padding: 20px 10px;
+            background: linear-gradient(to bottom, #111, transparent);
+            font-weight: bold; font-size: 1.1rem;
+        }
+        .stat { display: flex; flex-direction: column; align-items: center; }
+        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
         
-        /* Враги */
-        .enemy { position: absolute; font-size: 30px; transition: left 0.1s linear; top: 30px; }
+        #battlefield {
+            position: relative; width: 100vw; height: 40vh;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
+            overflow: hidden; border-bottom: 2px solid #222;
+        }
         
-        /* Кнопка */
+        #grid-container {
+            height: 45vh; display: flex; align-items: center; justify-content: center;
+        }
+        #grid {
+            display: grid; grid-template-columns: repeat(3, 90px); gap: 12px;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px;
+        }
+        .slot {
+            width: 90px; height: 90px; background: #151515; border-radius: 15px;
+            border: 2px solid #222; display: flex; align-items: center; 
+            justify-content: center; font-size: 40px; position: relative;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .slot.active { border-color: var(--accent); background: #1a2a2d; transform: scale(1.1); z-index: 10; }
+        
+        .projectile {
+            position: absolute; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 10px var(--accent);
+            z-index: 5; pointer-events: none;
+        }
+        .enemy {
+            position: absolute; font-size: 35px; transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 5px red); transition: left 0.05s linear;
+        }
+        
+        #controls { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: center; }
         #buy-btn {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 80%; padding: 20px; border-radius: 40px; border: none;
-            background: var(--accent); color: #1b262c; font-size: 20px; font-weight: bold;
-            box-shadow: 0 10px 0 #3da082; active: transform: translateY(5px);
+            width: 85%; padding: 20px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, #00f2ff, #0066ff);
+            color: white; font-size: 1.2rem; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 242, 255, 0.4);
         }
-        #buy-btn:active { transform: translateX(-50%) translateY(5px); box-shadow: 0 5px 0 #3da082; }
+        #buy-btn:active { transform: scale(0.95); opacity: 0.9; }
+
+        @keyframes merge-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        .pop { animation: merge-pop 0.3s ease-out; }
     </style>
 </head>
 <body>
 
-    <div id="header">
-        <div>💰 <span id="gold" class="stat-val">50</span></div>
-        <div>❤️ <span id="hp" class="stat-val">10</span></div>
-        <div>🏆 <span id="wave" class="stat-val">1</span></div>
+    <div id="ui-top">
+        <div class="stat"><span class="label">Золото</span><span id="gold" style="color:var(--gold)">50</span></div>
+        <div class="stat"><span class="label">Волна</span><span id="wave">1</span></div>
+        <div class="stat"><span class="label">Жизни</span><span id="hp" style="color:var(--hp)">10</span></div>
     </div>
 
-    <div id="game-container">
-        <div id="enemy-lane"></div>
+    <div id="battlefield"></div>
+
+    <div id="grid-container">
         <div id="grid">
-            <!-- 9 слотов -->
             <div class="slot" data-id="0"></div><div class="slot" data-id="1"></div><div class="slot" data-id="2"></div>
             <div class="slot" data-id="3"></div><div class="slot" data-id="4"></div><div class="slot" data-id="5"></div>
             <div class="slot" data-id="6"></div><div class="slot" data-id="7"></div><div class="slot" data-id="8"></div>
         </div>
     </div>
 
-    <button id="buy-btn">КУПИТЬ ВОИНА (💰 <span id="price">10</span>)</button>
+    <div id="controls">
+        <button id="buy-btn">НОВЫЙ ЮНИТ: 💰 <span id="price">10</span></button>
+    </div>
 
 <script>
-    let state = { gold: 50, hp: 10, wave: 1, price: 10, units: Array(9).fill(null) };
-    const icons = ["🐣", "🐥", "🛡️", "⚔️", "🧙", "🔥", "💎", "👑"];
+    const icons = ["🔹", "🔸", "💠", "💎", "🌀", "⚡", "🔥", "🌟"];
+    let state = { gold: 60, hp: 10, wave: 1, price: 10, units: Array(9).fill(null) };
     let selectedSlot = null;
+    let enemies = [];
+    let projectiles = [];
+    const battlefield = document.getElementById('battlefield');
 
-    const grid = document.getElementById('grid');
-    const slots = document.querySelectorAll('.slot');
-    const enemyLane = document.getElementById('enemy-lane');
+    // Инициализация звуков/вибрации
+    function fx() { if(navigator.vibrate) navigator.vibrate(40); }
 
-    // Покупка юнита
+    function render() {
+        document.querySelectorAll('.slot').forEach((slot, i) => {
+            slot.innerHTML = state.units[i] !== null ? icons[state.units[i]] : "";
+            slot.classList.remove('active');
+        });
+        document.getElementById('gold').innerText = Math.floor(state.gold);
+        document.getElementById('hp').innerText = state.hp;
+        document.getElementById('wave').innerText = state.wave;
+        document.getElementById('price').innerText = state.price;
+    }
+
     document.getElementById('buy-btn').onclick = () => {
         let emptyIdx = state.units.findIndex(u => u === null);
         if (emptyIdx !== -1 && state.gold >= state.price) {
             state.gold -= state.price;
-            state.units[emptyIdx] = 0; // уровень 0 (🐣)
-            state.price = Math.floor(state.price * 1.2);
+            state.units[emptyIdx] = 0;
+            state.price = Math.floor(state.price * 1.3);
+            fx();
             render();
-            vibrate(50);
         }
     };
 
-    // Логика клика/мерджа
-    slots.forEach(slot => {
+    document.querySelectorAll('.slot').forEach(slot => {
         slot.onclick = () => {
             const id = parseInt(slot.dataset.id);
             if (selectedSlot === null) {
@@ -91,19 +136,18 @@
             } else {
                 if (selectedSlot === id) {
                     selectedSlot = null;
-                    slot.classList.remove('active');
-                } else if (state.units[id] === state.units[selectedSlot]) {
-                    // МЕРДЖ!
+                    render();
+                } else if (state.units[id] === state.units[selectedSlot] && state.units[id] < icons.length - 1) {
                     state.units[id]++;
                     state.units[selectedSlot] = null;
                     selectedSlot = null;
-                    vibrate(100);
-                    render();
+                    slot.classList.add('pop');
+                    setTimeout(() => slot.classList.remove('pop'), 300);
+                    fx(); render();
                 } else {
-                    // Просто поменять местами
-                    let temp = state.units[id];
+                    let tmp = state.units[id];
                     state.units[id] = state.units[selectedSlot];
-                    state.units[selectedSlot] = temp;
+                    state.units[selectedSlot] = tmp;
                     selectedSlot = null;
                     render();
                 }
@@ -111,58 +155,82 @@
         };
     });
 
-    function render() {
-        slots.forEach((slot, i) => {
-            slot.innerHTML = state.units[i] !== null ? icons[state.units[i]] || "🌟" : "";
-            slot.classList.remove('active');
-        });
-        document.getElementById('gold').innerText = Math.floor(state.gold);
-        document.getElementById('price').innerText = state.price;
-        document.getElementById('hp').innerText = state.hp;
-        document.getElementById('wave').innerText = state.wave;
-    }
-
-    // Враги и стрельба
-    let enemies = [];
-    setInterval(() => {
+    // Игровой цикл
+    function gameLoop() {
         // Юниты стреляют
-        state.units.forEach(u => {
-            if (u !== null && enemies.length > 0) {
-                enemies[0].hp -= (u + 1) * 0.2;
+        state.units.forEach((lvl, i) => {
+            if (lvl !== null && enemies.length > 0 && Math.random() < 0.05 + (lvl * 0.02)) {
+                createProjectile(i, lvl);
             }
         });
 
-        // Враги идут
+        // Движение врагов
         enemies.forEach((en, i) => {
-            en.x -= 2;
+            en.x -= (0.5 + state.wave * 0.05);
             en.el.style.left = en.x + 'px';
-            if (en.hp <= 0) {
-                en.el.remove();
-                enemies.splice(i, 1);
-                state.gold += 5 + state.wave;
-                render();
-            } else if (en.x < 0) {
+            if (en.x < 0) {
                 en.el.remove();
                 enemies.splice(i, 1);
                 state.hp--;
+                battlefield.style.boxShadow = "inset 0 0 20px red";
+                setTimeout(() => battlefield.style.boxShadow = "none", 200);
                 render();
-                if (state.hp <= 0) location.reload();
+                if (state.hp <= 0) { alert("Игра окончена! Волна: " + state.wave); location.reload(); }
             }
         });
-    }, 50);
+
+        // Полет снарядов
+        projectiles.forEach((p, i) => {
+            p.x += 8;
+            p.el.style.left = p.x + 'px';
+            
+            // Проверка попадания
+            enemies.forEach((en, ei) => {
+                let dist = Math.abs(p.x - en.x) + Math.abs(p.y - en.y);
+                if (dist < 30) {
+                    en.hp -= p.dmg;
+                    p.el.remove();
+                    projectiles.splice(i, 1);
+                    if (en.hp <= 0) {
+                        state.gold += 2 + state.wave;
+                        en.el.remove();
+                        enemies.splice(ei, 1);
+                        render();
+                    }
+                }
+            });
+
+            if (p.x > window.innerWidth) {
+                p.el.remove();
+                projectiles.splice(i, 1);
+            }
+        });
+    }
+
+    function createProjectile(slotIdx, lvl) {
+        const pEl = document.createElement('div');
+        pEl.className = 'projectile';
+        // Точка вылета из слота (примерно)
+        const startY = 50 + (Math.random() * 200); 
+        pEl.style.top = startY + 'px';
+        pEl.style.left = '50px';
+        battlefield.appendChild(pEl);
+        projectiles.push({ x: 50, y: startY, dmg: lvl + 1, el: pEl });
+    }
 
     // Спавн врагов
     setInterval(() => {
         const el = document.createElement('div');
         el.className = 'enemy';
-        el.innerText = '👹';
-        enemyLane.appendChild(el);
-        enemies.push({ x: window.innerWidth, hp: 5 + state.wave * 2, el: el });
+        el.innerText = ['👾','👻','💀','👹'][Math.floor(Math.random()*4)];
+        el.style.top = (50 + Math.random() * 200) + 'px';
+        el.style.left = window.innerWidth + 'px';
+        battlefield.appendChild(el);
+        enemies.push({ x: window.innerWidth, y: parseInt(el.style.top), hp: 3 + state.wave, el: el });
         state.wave++;
-    }, 3000);
+    }, 2500);
 
-    function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
-
+    setInterval(gameLoop, 30);
     render();
 </script>
 </body>
